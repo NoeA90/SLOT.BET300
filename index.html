@@ -33,7 +33,6 @@ body::before{content:"";position:fixed;inset:0;z-index:-2;background:
 .count{display:inline-flex;gap:6px;align-items:center;padding:4px 8px;border-radius:999px;background:rgba(255,204,0,.15);
   border:1px solid rgba(255,204,0,.35);color:#ffe27a;font-weight:700;font-variant-numeric:tabular-nums}
 
-/* CTA arriba derecha */
 .topcta{margin-left:auto}
 .play{display:inline-flex;gap:8px;align-items:center;justify-content:center;padding:12px 16px;border-radius:12px;font-weight:800;
   background:linear-gradient(90deg,#7cd3ff,#ff8ad6);color:#0a0f20;box-shadow:0 8px 20px rgba(0,0,0,.25);text-decoration:none;border:1px solid rgba(255,255,255,.1)}
@@ -51,8 +50,7 @@ h1{font-size:24px}
 /* —— SLOT rectangular —— */
 .slotShell{position:relative;margin-top:8px}
 .machine{position:relative;border-radius:16px;background:#0a1230;border:1px solid #2a2f66;padding:14px}
-.machine::before{ /* borde exterior para más presencia */
-  content:"";position:absolute;inset:-8px;border-radius:20px;border:2px solid rgba(255,255,255,.06);pointer-events:none}
+.machine::before{content:"";position:absolute;inset:-8px;border-radius:20px;border:2px solid rgba(255,255,255,.06);pointer-events:none}
 .lightFrame{position:absolute;inset:-6px;border-radius:18px;pointer-events:none}
 .light{position:absolute;width:8px;height:8px;border-radius:50%;box-shadow:0 0 8px rgba(255,255,255,.5)}
 .slot{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;background:#0b1333;border:1px solid #22295e;border-radius:14px;padding:12px}
@@ -97,7 +95,7 @@ h1{font-size:24px}
     </div>
 
     <div class="grid">
-      <!-- IZQUIERDA: SLOT -->
+      <!-- IZQUIERDA -->
       <div class="panel">
         <div class="center">
           <h1>Slot Express · 3 rodillos</h1>
@@ -135,15 +133,15 @@ h1{font-size:24px}
         </div>
       </div>
 
-      <!-- DERECHA: RESULTADOS -->
+      <!-- DERECHA -->
       <div class="panel right">
         <div class="amount" id="amount">$0</div>
         <div style="margin-top:8px;color:var(--muted);font-size:13px" id="stampLine"></div>
 
-        <h2 id="title" style="margin-top:10px">—</h2>
+        <h2 id="title">—</h2>
         <div class="resultBox">
           <div style="color:var(--muted);font-weight:700">Resultado actual</div>
-          <div id="resultText" style="margin-top:6px">—</div>
+          <div id="resultLine" style="margin-top:6px">—</div>
         </div>
       </div>
     </div>
@@ -170,7 +168,7 @@ h1{font-size:24px}
 </div>
 
 <script>
-/* ====== Config plataforma + WhatsApp por PC (corregido) ====== */
+/* ===== Plataforma + WhatsApp por PC ===== */
 const params = new URLSearchParams(location.search);
 const pc = (params.get('pc')||'1').trim();
 const PLATFORM = "https://alvg.bet300vip.com";
@@ -183,8 +181,8 @@ const WPS = {
 const WP = WPS[pc] || WPS["1"];
 document.getElementById('playNow').href = PLATFORM;
 
-/* ====== Antifraude: device id + hash visible ====== */
-const SALT = "bet300-slotx-v2r";
+/* ===== Antifraude ===== */
+const SALT = "bet300-slotx-v3";
 function ensureDeviceId(){
   let id = localStorage.getItem('device_id');
   if(!id){ id = (crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2,8)}`); localStorage.setItem('device_id', id);}
@@ -208,18 +206,15 @@ async function makeClaimCode(prizeLabel){
   return hex.slice(0,10);
 }
 
-/* ====== Luces rectangulares ====== */
+/* ===== Luces rectangulares ===== */
 (function buildRectBulbs(){
   const frame = document.getElementById('lightFrame');
   const colors = ["#ffd166","#8bdcff","#b79dff","#69ffc9"];
-  const pad = 6; // sobre el borde interior
-  const perSide = 18;
-  const total = perSide*4;
+  const pad = 6, perSide = 18, total = perSide*4;
   for(let i=0;i<total;i++){
     const d=document.createElement('i'); d.className='light';
     d.style.background=colors[i%colors.length]; d.style.boxShadow=`0 0 10px ${colors[i%colors.length]}`;
-    const side = Math.floor(i/perSide); // 0 top,1 right,2 bottom,3 left
-    const t = (i%perSide)/(perSide-1);
+    const side = Math.floor(i/perSide); const t = (i%perSide)/(perSide-1);
     if(side===0){ d.style.top=pad+"px"; d.style.left=`calc(${t*100}% - 4px)`; }
     if(side===1){ d.style.right=pad+"px"; d.style.top=`calc(${t*100}% - 4px)`; }
     if(side===2){ d.style.bottom=pad+"px"; d.style.left=`calc(${t*100}% - 4px)`; }
@@ -237,12 +232,11 @@ async function makeClaimCode(prizeLabel){
   document.head.appendChild(style);
 })();
 
-/* ====== Sonido ====== */
+/* ===== Sonido ===== */
 let soundOn=true;
 const soundToggle=document.getElementById('soundToggle');
 const soundState=document.getElementById('soundState');
 soundToggle.addEventListener('click',()=>{ soundOn=!soundOn; soundState.textContent=soundOn?'ON':'OFF'; });
-
 const AudioKit=(()=>{
   const Ctx=window.AudioContext||window.webkitAudioContext;
   const ctx=new Ctx(); let unlocked=false;
@@ -258,7 +252,7 @@ const AudioKit=(()=>{
   return {ctx,unlock,spinTick,win};
 })();
 
-/* ====== Símbolos (Canvas) ====== */
+/* ===== Símbolos (Canvas) ===== */
 const SYMBOLS = [
   {name:"STAR", draw:(ctx)=>{drawStar(ctx)}},
   {name:"DIAMOND", draw:(ctx)=>{drawDiamond(ctx)}},
@@ -337,7 +331,7 @@ function drawBetSeal(ctx){
   ctx.restore();
 }
 
-/* ====== Render helpers ====== */
+/* ===== Render ===== */
 function drawSymbolToCanvas(canvas, sym){
   const dpr = window.devicePixelRatio || 1;
   const W = Math.floor(canvas.clientWidth * dpr);
@@ -349,12 +343,11 @@ function drawSymbolToCanvas(canvas, sym){
   SYMBOLS[sym].draw(ctx);
 }
 
-/* ====== Motor de carrete ====== */
+/* ===== Lógica reels ===== */
 const N = SYMBOLS.length;
 let spinning=false;
 const reelFinalIndex=[0,1,2];
 
-// Probabilidades
 const PROB = { jackpot:0.10, triple:0.20, pair:0.35, none:0.35 };
 
 function idxByName(name){ return SYMBOLS.findIndex(s=>s.name===name); }
@@ -374,7 +367,6 @@ function pickCenters(){
     const pos=Math.floor(Math.random()*3);
     const arr=[pick,pick,pick]; arr[pos]=other; return arr;
   }
-  // ninguno: tres distintos
   let a,b,c; do{a=Math.floor(Math.random()*N); b=Math.floor(Math.random()*N);}while(b===a);
   do{c=Math.floor(Math.random()*N);}while(c===a||c===b);
   return [a,b,c];
@@ -434,13 +426,14 @@ function evaluateLines(g){
   return {kind:"none", prize:1000, line:null, symbol:null};
 }
 
-/* ====== Spin ====== */
+/* ===== Spin ===== */
 const spinBtn=document.getElementById('spinBtn');
 const claimBtn=document.getElementById('claimBtn');
-const titleEl=document.getElementById('title');
-const amountEl=document.getElementById('amount');
-const resultText=document.getElementById('resultText');
+const title=document.getElementById('title');
+const resultLine=document.getElementById('resultLine');
+const amount=document.getElementById('amount');
 const stampLine=document.getElementById('stampLine');
+
 const prizeModal=document.getElementById('prizeModal');
 const mTitle=document.getElementById('mTitle');
 const mPrize=document.getElementById('mPrize');
@@ -449,7 +442,7 @@ const mTs=document.getElementById('mTs');
 const mClaim=document.getElementById('mClaim');
 const mClose=document.getElementById('mClose');
 
-function setAmount(n){ amountEl.textContent = n.toLocaleString("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0}); }
+function setAmount(n){ amount.textContent = n.toLocaleString("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0}); }
 
 function animateSpin(targetCenters){
   return new Promise(resolve=>{
@@ -472,14 +465,14 @@ function animateSpin(targetCenters){
   });
 }
 
-/* ====== WhatsApp ====== */
+/* WhatsApp */
 function whatsappText(prizeLabel){
   const code = localStorage.getItem('slot_code') || '(SIN-COD)';
   const ts   = localStorage.getItem('slot_ts')   || tsString();
   return `Hola, gané ${prizeLabel} en el Slot Express y quiero reclamarlo con mi próxima carga. Código: ${code} · ${ts}`;
 }
 
-/* ====== Countdown ====== */
+/* Countdown */
 const countdownEl=document.getElementById('countdown');
 function tickCountdown(){
   const now=new Date();
@@ -490,15 +483,11 @@ function tickCountdown(){
 }
 setInterval(tickCountdown,1000); tickCountdown();
 
-/* ====== Init ====== */
-renderFromCenters(0,1,2);
-setAmount(0);
-titleEl.textContent="—";
-resultText.textContent="—";
-
-/* ====== Spin handler ====== */
+/* Init */
+renderFromCenters(0,1,2); setAmount(0); title.textContent="—"; resultLine.textContent="—";
 document.addEventListener('click',()=>AudioKit.ctx.resume(),{once:true});
 
+/* Handler */
 spinBtn.addEventListener('click', async ()=>{
   if(spinning) return;
   spinning=true; spinBtn.disabled=true; claimBtn.disabled=true;
@@ -508,20 +497,23 @@ spinBtn.addEventListener('click', async ()=>{
 
   const grid = buildGridFromFinals();
   const verdict = evaluateLines(grid);
-  const centersNames = [grid.r1.center, grid.r2.center, grid.r3.center].join(" | ");
+  const centers = [grid.r1.center, grid.r2.center, grid.r3.center];
 
-  titleEl.textContent =
+  /* === Bloque EXACTO que pediste como base === */
+  title.textContent =
     (verdict.kind==="jackpot") ? "🏆 ¡JACKPOT $10.000!" :
     (verdict.kind==="triple")  ? "🎉 ¡3 iguales!" :
     (verdict.kind==="pair")    ? "✨ ¡2 iguales!" :
                                  "🎁 Premio garantizado";
 
   const lineTxt = verdict.line ? ` · Línea: ${verdict.line}` : '';
-  resultText.textContent =
-    (verdict.kind==="jackpot") ? `3 logos BET300${lineTxt}. Centro: ${centersNames}` :
-    (verdict.kind==="triple")  ? `3 iguales${lineTxt}. Centro: ${centersNames}` :
-    (verdict.kind==="pair")    ? `2 iguales${lineTxt}. Centro: ${centersNames}` :
-                                 `Sin acierto. Centro: ${centersNames}`;
+  const centersTxt = `Centro: ${centers.join(" | ")}`;
+  resultLine.textContent =
+    (verdict.kind==="jackpot") ? `3 logos BET300${lineTxt}. ${centersTxt}` :
+    (verdict.kind==="triple")  ? `3 iguales${lineTxt}. ${centersTxt}` :
+    (verdict.kind==="pair")    ? `2 iguales${lineTxt}. ${centersTxt}` :
+                                 `Sin acierto. ${centersTxt}`;
+  /* === fin bloque base === */
 
   setAmount(verdict.prize);
   const ts = tsString(new Date());
@@ -531,32 +523,30 @@ spinBtn.addEventListener('click', async ()=>{
   stampLine.textContent = `Código: ${code} · ${ts}`;
 
   // Modal
-  document.getElementById('mTitle').textContent = titleEl.textContent;
-  document.getElementById('mPrize').textContent = verdict.prize.toLocaleString("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0});
-  document.getElementById('mCode').textContent = code;
-  document.getElementById('mTs').textContent = ts;
-  const msg = whatsappText(document.getElementById('mPrize').textContent);
-  document.getElementById('mClaim').onclick=()=>location.href=`https://wa.me/${WP}?text=${encodeURIComponent(msg)}`;
+  mTitle.textContent = title.textContent;
+  mPrize.textContent = verdict.prize.toLocaleString("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0});
+  mCode.textContent = code; mTs.textContent = ts;
+  const msg = whatsappText(mPrize.textContent);
+  mClaim.onclick=()=>location.href=`https://wa.me/${WP}?text=${encodeURIComponent(msg)}`;
 
   claimBtn.disabled=false;
   if(soundOn) AudioKit.win();
-  document.getElementById('prizeModal').style.display="flex";
+  prizeModal.style.display="flex";
 
   spinning=false; spinBtn.disabled=false;
 });
 
 claimBtn.addEventListener('click', ()=>{
-  const msg = whatsappText(amountEl.textContent);
+  const msg = whatsappText(amount.textContent);
   location.href = `https://wa.me/${WP}?text=${encodeURIComponent(msg)}`;
 });
-
-mClose.addEventListener('click', ()=>{ document.getElementById('prizeModal').style.display="none"; });
+mClose.addEventListener('click', ()=>{ prizeModal.style.display="none"; });
 prizeModal.addEventListener('click', (e)=>{ if(e.target===prizeModal) prizeModal.style.display="none"; });
 
-/* ====== Responsive: sin scroll en móvil ====== */
+/* Responsive: sin scroll en móvil */
 function fitHeights(){
   const isMobile = window.innerWidth < 520;
-  const cellH = isMobile ? 92 : 120;          /* rectangular */
+  const cellH = isMobile ? 92 : 120;
   document.querySelectorAll('.cell').forEach(c=>{ c.style.height = cellH+"px"; });
 }
 addEventListener('resize', ()=>{ clearTimeout(window.__fitTo); window.__fitTo=setTimeout(fitHeights,120); });
