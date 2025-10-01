@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <title>BET300 · Slot Express</title>
 <meta name="theme-color" content="#0a0f1f"/>
 <style>
@@ -18,75 +18,97 @@ body::before{content:"";position:fixed;inset:0;z-index:-2;background:
   radial-gradient(700px 350px at 0% 0%, rgba(0,209,255,.18), transparent),
   linear-gradient(180deg,#0a0f1f 0%,#0a0f1f 60%,#080c1a 100%);
 }
-.container{max-width:980px;margin:10px auto 100px;padding:0 12px}
+.container{max-width:980px;margin:6px auto 86px;padding:0 10px}
 .card{background:
   radial-gradient(120% 100% at 50% 0%, rgba(124,77,255,.09), transparent),
   var(--panel2);
-  border:1px solid var(--border);border-radius:18px;padding:14px;box-shadow:0 15px 40px rgba(0,0,0,.35)}
-@media(min-width:900px){.grid{display:grid;grid-template-columns:1.15fr .85fr;gap:14px}}
+  border:1px solid var(--border);border-radius:18px;padding:10px;box-shadow:0 15px 40px rgba(0,0,0,.35)}
+@media(min-width:900px){.grid{display:grid;grid-template-columns:1.05fr .95fr;gap:10px}}
 @media(max-width:520px){.card{border-radius:0;border-left:0;border-right:0}}
-.head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+
+.head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
 .brand{font-weight:900;letter-spacing:.5px}
 .pill{background:linear-gradient(90deg,rgba(124,77,255,.13),rgba(0,209,255,.13));border:1px solid var(--border);
-  border-radius:999px;padding:6px 10px;font-size:12px;color:var(--muted)}
-.pill.time{display:flex;gap:8px;align-items:center}
+  border-radius:999px;padding:6px 8px;font-size:12px;color:var(--muted)}
+.pill.time{display:flex;gap:6px;align-items:center}
 .pill.sound{cursor:pointer;user-select:none}
-.count{display:inline-flex;gap:6px;align-items:center;padding:4px 8px;border-radius:999px;background:rgba(255,204,0,.15);
+.count{display:inline-flex;gap:6px;align-items:center;padding:3px 8px;border-radius:999px;background:rgba(255,204,0,.15);
   border:1px solid rgba(255,204,0,.35);color:#ffe27a;font-weight:700;font-variant-numeric:tabular-nums}
-h1,h2,h3,p{margin:0 0 8px}
-h1{font-size:22px}
+h1,h2,h3,p{margin:0 0 6px}
+h1{font-size:20px}
 .muted{color:var(--muted)}
 .rightTop{margin-left:auto;display:flex;gap:8px;align-items:center}
-.btnLink{display:inline-flex;gap:8px;align-items:center;padding:10px 12px;border-radius:12px;font-weight:800;
+.btnLink{display:inline-flex;gap:8px;align-items:center;padding:8px 10px;border-radius:12px;font-weight:800;
   background:linear-gradient(90deg,#7c59ff,#00d1ff);color:#0a0f1f;text-decoration:none;border:1px solid rgba(255,255,255,.06)}
-.panel{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:14px}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:10px}
 .center{text-align:center}
-.stat{display:flex;gap:12px;align-items:center;justify-content:center;margin:8px 0 12px}
-.badge{min-width:72px;height:46px;border-radius:12px;background:radial-gradient(100% 100% at 50% 0%, rgba(0,209,255,.35), rgba(124,77,255,.35));
-  display:grid;place-items:center;font-weight:800;font-size:18px;box-shadow:inset 0 0 10px rgba(124,77,255,.35)}
+.stat{display:flex;gap:10px;align-items:center;justify-content:center;margin:6px 0 8px}
+.badge{min-width:66px;height:40px;border-radius:10px;background:radial-gradient(100% 100% at 50% 0%, rgba(0,209,255,.35), rgba(124,77,255,.35));
+  display:grid;place-items:center;font-weight:800;font-size:16px;box-shadow:inset 0 0 10px rgba(124,77,255,.35)}
 .smallline{font-size:12px;color:var(--muted)}
 .stage{display:flex;justify-content:center}
-.slotWrap{width:100%;max-width:520px;margin:8px auto 0}
-.slot{position:relative;border-radius:18px;padding:12px;background:
+.slotWrap{width:100%;max-width:520px;margin:4px auto 0;position:relative}
+.slot{position:relative;border-radius:16px;padding:10px;background:
   linear-gradient(180deg,rgba(124,77,255,.18),rgba(34,211,238,.18));
   border:1px solid var(--border);box-shadow:inset 0 0 0 1px rgba(255,255,255,.03), 0 10px 30px rgba(0,0,0,.35)}
-.reelFrame{position:relative;border-radius:14px;padding:10px;background:rgba(10,15,35,.65);
+.reelFrame{position:relative;border-radius:14px;padding:8px;background:rgba(10,15,35,.65);
   border:1px solid #2a2f58}
-.reels{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-.reel{background:#0c1230;border-radius:12px;padding:10px;border:1px solid #30376a}
-canvas{width:100%;height:140px;display:block;border-radius:10px;background:linear-gradient(180deg,#0d1438,#0a102c)}
-@media(min-width:480px){canvas{height:160px}}
-.shadowTop,.shadowBot{position:absolute;left:0;right:0;height:28px;pointer-events:none}
+.reels{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.reel{background:#0c1230;border-radius:10px;padding:6px;border:1px solid #30376a}
+canvas{width:100%;height:128px;display:block;border-radius:10px;background:linear-gradient(180deg,#0d1438,#0a102c)}
+@media(min-width:420px){canvas{height:140px}}
+@media(min-width:540px){canvas{height:160px}}
+.shadowTop,.shadowBot{position:absolute;left:0;right:0;height:24px;pointer-events:none}
 .shadowTop{top:0;background:linear-gradient(180deg,rgba(10,15,35,.75),transparent)}
 .shadowBot{bottom:0;background:linear-gradient(0deg,rgba(10,15,35,.75),transparent)}
-.hint{text-align:center;color:var(--muted);font-size:13px;margin-top:6px}
+.hint{text-align:center;color:var(--muted);font-size:12px;margin-top:4px}
 
+/* Luces casino alrededor del marco */
+.bulbs{position:absolute;inset:-6px;pointer-events:none}
+.bulbs i{position:absolute;width:8px;height:8px;border-radius:50%;box-shadow:0 0 10px rgba(255,255,255,.6)}
+@keyframes bulbOn{0%{opacity:.4;transform:scale(.9)}50%{opacity:1;transform:scale(1)}100%{opacity:.4;transform:scale(.9)}}
+
+/* Capa FX para resaltar línea ganadora */
+.fx{position:absolute;inset:8px;pointer-events:none}
+.fx canvas{position:absolute;inset:0;display:block}
+
+/* Dock inferior fijo */
 .dock{position:fixed;left:0;right:0;bottom:0;z-index:20;background:linear-gradient(180deg, rgba(11,15,30,0) 0%, rgba(11,15,30,.85) 22%, rgba(11,15,30,.95) 100%);
-  padding:10px 12px 12px;display:flex;gap:10px}
-.btn{appearance:none;border:none;cursor:pointer;padding:14px 16px;border-radius:14px;font-weight:800;background:linear-gradient(90deg,#ff9a3d,#ff5c39);color:#0b0f1e;width:100%;
+  padding:8px 10px 10px;display:flex;gap:8px}
+.btn{appearance:none;border:none;cursor:pointer;padding:12px 14px;border-radius:14px;font-weight:800;background:linear-gradient(90deg,#ff9a3d,#ff5c39);color:#0b0f1e;width:100%;
   box-shadow:0 8px 20px rgba(0,0,0,.35)}
 .btn:disabled{opacity:.6;cursor:not-allowed}
 .btn.ok{background:#25D366;color:#0b0f1e}
-.badgeWin{display:inline-block;padding:6px 10px;border-radius:10px;background:rgba(255,209,102,.15);color:var(--gold);border:1px solid rgba(255,209,102,.35);font-weight:800}
+.badgeWin{display:inline-block;padding:4px 8px;border-radius:10px;background:rgba(255,209,102,.15);color:var(--gold);border:1px solid rgba(255,209,102,.35);font-weight:800}
 
+/* Confetti */
 .confetti{position:fixed;inset:0;pointer-events:none;z-index:40}
 .confetti i{position:absolute;top:-20px;width:10px;height:14px;border-radius:2px;opacity:0;animation:confFall 1.6s linear forwards}
 @keyframes confFall{8%{opacity:1}100%{transform:translateY(110vh) rotate(360deg);opacity:0}}
 
-/* ===== Modal premio ===== */
+/* Modal premio */
 .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(4,6,14,.6);backdrop-filter:blur(4px);z-index:60}
 .modal.show{display:flex}
-.modalCard{width:min(520px,92vw);background:var(--panel2);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.45)}
+.modalCard{width:min(520px,92vw);background:var(--panel2);border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:0 20px 50px rgba(0,0,0,.45)}
 .modalHead{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .modalHead h3{margin:0;font-size:18px}
 .modalBody{display:grid;gap:8px}
 .row{display:flex;gap:8px;align-items:center;justify-content:space-between;border:1px dashed var(--border);border-radius:12px;padding:10px}
 .k{color:var(--muted);font-size:13px}
 .v{font-weight:800}
-.actions{display:flex;gap:10px;margin-top:10px}
+.actions{display:flex;gap:8px;margin-top:8px}
 .btn.ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
 .closeX{margin-left:auto;cursor:pointer;opacity:.8}
 .closeX:hover{opacity:1}
+
+/* Compactar más en móviles para evitar scroll */
+@media(max-width:420px){
+  h1{font-size:18px}
+  .panel{padding:8px}
+  .stat{gap:8px}
+  .badge{min-width:60px;height:36px;font-size:15px}
+  .btn{padding:11px 12px}
+}
 </style>
 </head>
 <body>
@@ -103,7 +125,6 @@ canvas{width:100%;height:140px;display:block;border-radius:10px;background:linea
       <div class="row"><span class="k">Premio</span><span class="v" id="mPrize">—</span></div>
       <div class="row"><span class="k">Código</span><span class="v" id="mCode">—</span></div>
       <div class="row"><span class="k">Fecha/Hora</span><span class="v" id="mTs">—</span></div>
-      <div class="row"><span class="k">PC</span><span class="v" id="mPc">—</span></div>
       <div class="actions">
         <button id="mClaim" class="btn ok">📲 Reclamar por WhatsApp</button>
         <button id="mClose" class="btn ghost">Cerrar</button>
@@ -127,11 +148,17 @@ canvas{width:100%;height:140px;display:block;border-radius:10px;background:linea
     <div class="grid">
       <div class="panel">
         <h1>Slot Express · 3 rodillos</h1>
-        <p class="muted">3 iguales = <span class="badgeWin">$10.000</span> · 2 iguales = <b>$2.000</b> · sin match = <b>$1.000</b>. Premio con tu próxima carga mínima.</p>
+        <p class="muted">Líneas: <b>arriba</b>, <b>centro</b>, <b>abajo</b>, <b>↘</b>, <b>↗</b>. 3 iguales = <span class="badgeWin">$10.000</span> · 2 iguales = <b>$2.000</b> · sin línea = <b>$1.000</b>.</p>
         <div class="stage">
-          <div class="slotWrap slot">
+          <div class="slotWrap slot" id="slotBox">
+            <!-- Luces casino -->
+            <div class="bulbs" id="bulbs"></div>
+
             <div class="shadowTop"></div>
-            <div class="reelFrame">
+            <div class="reelFrame" id="reelFrame">
+              <!-- Capa FX de highlight -->
+              <div class="fx"><canvas id="fx"></canvas></div>
+
               <div class="reels">
                 <div class="reel"><canvas id="r1" width="240" height="320"></canvas></div>
                 <div class="reel"><canvas id="r2" width="240" height="320"></canvas></div>
@@ -158,7 +185,7 @@ canvas{width:100%;height:140px;display:block;border-radius:10px;background:linea
           </div>
         </div>
 
-        <div class="panel" style="margin-top:8px">
+        <div class="panel" style="margin-top:6px">
           <p style="margin-bottom:6px"><b>Resultado actual</b></p>
           <p id="resultLine" class="muted">—</p>
         </div>
@@ -167,6 +194,7 @@ canvas{width:100%;height:140px;display:block;border-radius:10px;background:linea
   </div>
 </div>
 
+<!-- Dock fijo -->
 <div class="dock">
   <button id="spinBtn" class="btn">🎯 Girar</button>
   <button id="claimBtn" class="btn ok" disabled>📲 Reclamar</button>
@@ -188,7 +216,7 @@ const pc = (params.get('pc')||"1").trim();
 const WP = WP_NUMBERS["pc"+(pc.match(/^[1-4]$/)?pc:"1")];
 
 /* ===== Antifraude ===== */
-const SALT = "bet300-slot-v4";
+const SALT = "bet300-slot-v6";
 function ensureDeviceId(){
   let id = localStorage.getItem('device_id');
   if(!id){ id = (crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2,8)}`); localStorage.setItem('device_id', id); }
@@ -240,87 +268,164 @@ let reelY = [0,0,0], spinning=false;
 let haloActive = false;
 let haloUntil = 0;
 
+/* FX overlay (highlight línea ganadora) */
+const fxCanvas = document.getElementById('fx');
+const reelFrameEl = document.getElementById('reelFrame');
+let fxCtx, fxW=0, fxH=0, winFX=null;
+
+function sizeFx(){
+  const dpr = window.devicePixelRatio||1;
+  const rect = reelFrameEl.getBoundingClientRect();
+  fxW = Math.floor(rect.width*dpr);
+  fxH = Math.floor(rect.height*dpr);
+  fxCanvas.width = fxW; fxCanvas.height = fxH;
+  fxCanvas.style.width = rect.width+'px';
+  fxCanvas.style.height = rect.height+'px';
+  fxCtx = fxCanvas.getContext('2d');
+}
+window.addEventListener('resize', ()=>{ clearTimeout(window.__fxTo); window.__fxTo=setTimeout(()=>{ sizeFx(); placeBulbs(); }, 120); });
+
+function flashWin(lineName){ // lineName: "Arriba"|"Centro"|"Abajo"|"Diag ↘"|"Diag ↗"
+  winFX = { line: lineName, until: Date.now()+1000 };
+}
+function renderWinFX(){
+  if(!fxCtx){ return; }
+  fxCtx.clearRect(0,0,fxW,fxH);
+  if(!winFX || Date.now()>winFX.until) return;
+
+  const t = (winFX.until - Date.now())/1000; // s restantes
+  const alpha = 0.25 + 0.25*Math.sin((1-t)*10); // pulso
+  const dpr = window.devicePixelRatio||1;
+
+  // posiciones basadas en rects reales de cada canvas
+  const c1 = COLS[0].canvas.getBoundingClientRect();
+  const c2 = COLS[1].canvas.getBoundingClientRect();
+  const c3 = COLS[2].canvas.getBoundingClientRect();
+  const fr = reelFrameEl.getBoundingClientRect();
+
+  // helper: convertir a coords del fxCanvas (considerando dpr)
+  const X = x => (x - fr.left)*dpr;
+  const Y = y => (y - fr.top )*dpr;
+
+  const ch = c1.height; // alto de un reel (CSS px)
+  const midY = c1.top + ch/2;
+  const cell = ch/3;
+  const topY = midY - cell;
+  const centerY = midY;
+  const bottomY = midY + cell;
+
+  // x extremos
+  const leftX  = c1.left;
+  const rightX = c3.right;
+
+  fxCtx.save();
+  fxCtx.lineWidth = 6*dpr;
+  fxCtx.strokeStyle = `rgba(124,77,255,${0.45+alpha/2})`;
+  fxCtx.fillStyle   = `rgba(34,211,238,${alpha*0.6})`;
+
+  function band(y){
+    const pad = 6*dpr;
+    const h = cell*0.82*dpr;
+    const y0 = Y(y - (h/dpr)/2);
+    const x0 = X(leftX) + pad, x1 = X(rightX) - pad;
+    const r = 12*dpr;
+    // banda redondeada
+    fxCtx.beginPath();
+    fxCtx.moveTo(x0+r,y0);
+    fxCtx.arcTo(x1,y0,x1,y0+h,r);
+    fxCtx.arcTo(x1,y0+h,x0,y0+h,r);
+    fxCtx.arcTo(x0,y0+h,x0,y0,r);
+    fxCtx.arcTo(x0,y0,x1,y0,r);
+    fxCtx.closePath();
+    fxCtx.fill();
+    fxCtx.stroke();
+  }
+  function diagDown(){ // ↘ (arriba-izq a abajo-der)
+    const x0 = X(leftX)+8*dpr, y0 = Y(topY);
+    const x1 = X(rightX)-8*dpr, y1 = Y(bottomY);
+    fxCtx.beginPath();
+    fxCtx.moveTo(x0,y0);
+    fxCtx.lineTo(x1,y1);
+    fxCtx.stroke();
+  }
+  function diagUp(){ // ↗ (abajo-izq a arriba-der)
+    const x0 = X(leftX)+8*dpr, y0 = Y(bottomY);
+    const x1 = X(rightX)-8*dpr, y1 = Y(topY);
+    fxCtx.beginPath();
+    fxCtx.moveTo(x0,y0);
+    fxCtx.lineTo(x1,y1);
+    fxCtx.stroke();
+  }
+
+  switch(winFX.line){
+    case "Arriba": band(topY); break;
+    case "Centro": band(centerY); break;
+    case "Abajo":  band(bottomY); break;
+    case "Diag ↘": diagDown(); break;
+    case "Diag ↗": diagUp(); break;
+  }
+  fxCtx.restore();
+}
+
+/* Utilidades de dibujo reels */
 function roundRect(ctx,x,y,w,h,r,fill=true,stroke=true,fillStyle){
   let rr = Math.min(r, w/2, h/2);
   ctx.beginPath();
   ctx.moveTo(x+rr,y);
   ctx.arcTo(x+w,y,x+w,y+h,rr);
   ctx.arcTo(x+w,y+h,x,y+h,rr);
-  ctx.arcTo(x,y,h,y,rr);
+  ctx.arcTo(x,y+h,x,y,rr);
   ctx.arcTo(x,y,x+w,y,rr);
   if(fill){ ctx.fillStyle = fillStyle || ctx.fillStyle; ctx.fill(); }
   if(stroke){ ctx.stroke(); }
 }
 
-/* === Dibujo del "sello circular" BET300 === */
+/* === Sello circular BET300 (logo grande) === */
 function drawSealBET300(ctx, x, y, cell){
-  const r = cell*0.34; // radio del sello
-  // aro externo con brillo
+  const r = cell*0.38;
   const ringGrad = ctx.createRadialGradient(x,y,r*0.4, x,y,r);
-  ringGrad.addColorStop(0,"rgba(255,255,255,.25)");
-  ringGrad.addColorStop(1,"rgba(255,255,255,.05)");
-  ctx.beginPath();
-  ctx.arc(x,y,r,0,Math.PI*2);
-  ctx.fillStyle = "rgba(10,15,35,.9)";
-  ctx.fill();
-  ctx.lineWidth = Math.max(2,r*0.12);
-  ctx.strokeStyle = ringGrad;
-  ctx.stroke();
+  ringGrad.addColorStop(0,"rgba(255,255,255,.28)");
+  ringGrad.addColorStop(1,"rgba(255,255,255,.06)");
+  ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+  ctx.fillStyle = "rgba(10,15,35,.9)"; ctx.fill();
+  ctx.lineWidth = Math.max(2,r*0.12); ctx.strokeStyle = ringGrad; ctx.stroke();
 
-  // disco interior con gradiente neón
   const g = ctx.createLinearGradient(x,y-r,x,y+r);
-  g.addColorStop(0,"#7c59ff");
-  g.addColorStop(1,"#22d3ee");
-  ctx.beginPath();
-  ctx.arc(x,y,r*0.82,0,Math.PI*2);
-  ctx.fillStyle = g;
-  ctx.fill();
+  g.addColorStop(0,"#7c59ff"); g.addColorStop(1,"#22d3ee");
+  ctx.beginPath(); ctx.arc(x,y,r*0.82,0,Math.PI*2); ctx.fillStyle = g; ctx.fill();
 
-  // texto BET / 300
-  ctx.save();
-  ctx.fillStyle = "#0a0f1f";
-  ctx.textAlign="center"; ctx.textBaseline="middle";
-  ctx.font = `800 ${Math.floor(cell*0.20)}px system-ui,Segoe UI,Roboto`;
-  ctx.fillText("BET", x, y - r*0.22);
-  ctx.font = `900 ${Math.floor(cell*0.26)}px system-ui,Segoe UI,Roboto`;
-  ctx.fillText("300", x, y + r*0.18);
+  ctx.save(); ctx.fillStyle = "#0a0f1f"; ctx.textAlign="center"; ctx.textBaseline="middle";
+  ctx.font = `800 ${Math.floor(cell*0.22)}px system-ui,Segoe UI,Roboto`; ctx.fillText("BET", x, y - r*0.22);
+  ctx.font = `900 ${Math.floor(cell*0.30)}px system-ui,Segoe UI,Roboto`; ctx.fillText("300", x, y + r*0.18);
   ctx.restore();
 }
 
-/* Halo pulsante en el centro del reel (decorativo) */
+/* Halo pulsante (decorativo) */
 function drawHalo(ctx, t){
   if(!haloActive) return;
   const w=ctx.canvas.width, h=ctx.canvas.height;
   const cx = w/2, cy = h/2;
-  const pct = (Math.sin(t/180)+1)/2; // 0..1
-  const r1 = (h/3)*0.55 + pct*10;
-  const r2 = r1 + 14 + pct*8;
+  const pct = (Math.sin(t/180)+1)/2;
+  const r1 = (h/3)*0.62 + pct*10;
+  const r2 = r1 + 16 + pct*10;
 
   const grad = ctx.createRadialGradient(cx,cy,r1*0.2, cx,cy,r2);
   grad.addColorStop(0, "rgba(124,77,255,.28)");
-  grad.addColorStop(1, "rgba(34,211,238,.05)");
-  ctx.beginPath();
-  ctx.arc(cx,cy,r2,0,Math.PI*2);
-  ctx.fillStyle = grad;
-  ctx.fill();
+  grad.addColorStop(1, "rgba(34,211,238,.06)");
+  ctx.beginPath(); ctx.arc(cx,cy,r2,0,Math.PI*2); ctx.fillStyle = grad; ctx.fill();
 
-  ctx.beginPath();
-  ctx.lineWidth = 2 + pct*1.5;
-  ctx.strokeStyle = "rgba(255,255,255,.35)";
-  ctx.arc(cx,cy,r1,0,Math.PI*2);
-  ctx.stroke();
+  ctx.beginPath(); ctx.lineWidth = 2 + pct*1.6;
+  ctx.strokeStyle = "rgba(255,255,255,.38)";
+  ctx.arc(cx,cy,r1,0,Math.PI*2); ctx.stroke();
 }
 
 function drawSymbol(ctx, text, x, y, cell){
-  if(text==="BET300"){
-    drawSealBET300(ctx, x, y, cell);
-  }else{
-    ctx.save();
-    ctx.textAlign="center"; ctx.textBaseline="middle";
+  if(text==="BET300"){ drawSealBET300(ctx, x, y, cell); }
+  else{
+    ctx.save(); ctx.textAlign="center"; ctx.textBaseline="middle";
     ctx.fillStyle="#e9ecff";
     ctx.font = `${Math.floor(cell*0.5)}px system-ui,Apple Color Emoji,Segoe UI Emoji`;
-    ctx.fillText(text, x, y);
-    ctx.restore();
+    ctx.fillText(text, x, y); ctx.restore();
   }
 }
 
@@ -331,26 +436,52 @@ function drawReel(ctx, y){
   for(let i=-1;i<5;i++){
     const sym = SYMBOLS[(i+Math.floor(y)) % SYMBOLS.length];
     const yy = (i - (y%1))*cell + h/2;
-    const r=10, pad=8;
+    const r=10, pad=6;
     ctx.fillStyle="#11183f"; ctx.strokeStyle="#2d356b"; ctx.lineWidth=2;
-    roundRect(ctx, pad, yy-cell/2+6, w-pad*2, cell-12, r, true, true);
+    // tarjeta
+    ctx.beginPath();
+    const rx=pad, ry=yy-cell/2+5, rw=w-pad*2, rh=cell-10, rr=10;
+    ctx.moveTo(rx+rr,ry);
+    ctx.arcTo(rx+rw,ry,rx+rw,ry+rh,rr); ctx.arcTo(rx+rw,ry+rh,rx,ry+rh,rr);
+    ctx.arcTo(rx,ry+rh,rx,ry,rr); ctx.arcTo(rx,ry,rx+rw,ry,rr);
+    ctx.fill(); ctx.stroke();
+    // brillo
     const grad=ctx.createLinearGradient(0,yy-cell/2,0,yy+cell/2);
     grad.addColorStop(0,"rgba(124,77,255,.25)"); grad.addColorStop(1,"rgba(34,211,238,.25)");
-    roundRect(ctx, pad+2, yy-cell/2+8, w-(pad+2)*2, cell-16, r-2, true, false, grad);
+    ctx.fillStyle=grad; ctx.fillRect(pad+2, yy-cell/2+7, w-(pad+2)*2, cell-14);
+
     drawSymbol(ctx, sym, w/2, yy, cell);
   }
-  // halo decorativo (sobre centro visual)
   drawHalo(ctx, Date.now()/10);
 }
 function renderAll(){
-  for(let i=0;i<3;i++){
-    drawReel(COLS[i], reelY[i]);
-  }
-  // apagar halo si pasó el tiempo
+  for(let i=0;i<3;i++) drawReel(COLS[i], reelY[i]);
   if(haloActive && Date.now()>haloUntil){ haloActive=false; }
+  renderWinFX();
   requestAnimationFrame(renderAll);
 }
 renderAll();
+
+/* ===== Luces casino (bombillas) ===== */
+function placeBulbs(){
+  const wrap = document.getElementById('slotBox');
+  const frame = document.getElementById('reelFrame');
+  const bulbs = document.getElementById('bulbs');
+  bulbs.innerHTML='';
+  const w = wrap.clientWidth, h = frame.clientHeight + 20;
+  function addBulb(x,y,i){
+    const b=document.createElement('i');
+    b.style.left=x+'px'; b.style.top=y+'px';
+    b.style.background = (i%3===0)?'#ffd166': (i%3===1)?'#7c59ff':'#22d3ee';
+    b.style.animation = `bulbOn ${900+((i%5)*120)}ms infinite`;
+    bulbs.appendChild(b);
+  }
+  const perSide = 10;
+  for(let i=0;i<=perSide;i++){ addBulb(i*(w/perSide), -4, i); }
+  for(let i=0;i<=perSide;i++){ addBulb(i*(w/perSide), h+4, i+100); }
+  for(let i=0;i<=perSide;i++){ addBulb(-4, i*(h/perSide), i+200); }
+  for(let i=0;i<=perSide;i++){ addBulb(w+4, i*(h/perSide), i+300); }
+}
 
 /* ===== UI ===== */
 const spinBtn = document.getElementById('spinBtn');
@@ -367,7 +498,6 @@ const prizeModal = document.getElementById('prizeModal');
 const mPrize = document.getElementById('mPrize');
 const mCode  = document.getElementById('mCode');
 const mTs    = document.getElementById('mTs');
-const mPc    = document.getElementById('mPc');
 const mClaim = document.getElementById('mClaim');
 const mClose = document.getElementById('mClose');
 const closeModalX = document.getElementById('closeModal');
@@ -376,7 +506,6 @@ function openModal(prizeLabel, code, ts){
   mPrize.textContent = prizeLabel;
   mCode.textContent  = code;
   mTs.textContent    = ts;
-  mPc.textContent    = "pc:"+(pc||"1");
   const msg = whatsappText(prizeLabel);
   mClaim.onclick = ()=>location.href=`https://wa.me/${WP}?text=${encodeURIComponent(msg)}`;
   prizeModal.classList.add('show');
@@ -448,32 +577,50 @@ function tickCountdown(){
 }
 
 /* ===== Probabilidades =====
-   10%: 3 iguales → $10.000
-   35%: 2 iguales → $2.000
-   55%: 0 coincidencias → $1.000
+   10%: 3 iguales (en alguna línea) → $10.000
+   35%: 2 iguales (en alguna línea) → $2.000
+   55%: sin línea ganadora → $1.000
 */
-function pickOutcome(){
-  const SYMBOLS = ["💎","7","🍒","🔔","⭐","BET300"];
+function pickCenters(){
+  const s = ()=> SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
   const r = Math.random();
-  if(r < 0.10){
-    const s = SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
-    return [s,s,s];
-  }else if(r < 0.45){
-    const s = SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
-    const t = SYMBOLS.filter(x=>x!==s)[Math.floor(Math.random()*(SYMBOLS.length-1))];
-    const pos = Math.floor(Math.random()*3);
-    const arr = [t,t,t]; arr[pos]=s; return arr;
-  }else{
-    let a=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
-    let b=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
-    let c=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
-    while(a===b){ b=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]; }
-    while(c===a || c===b){ c=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]; }
+  if(r < 0.10){ const x=s(); return [x,x,x]; }
+  else if(r < 0.45){
+    const a=s(), b=s();
+    if(a===b){ let c=s(); while(c===a) c=s(); return [a,a,c]; }
+    const pos=Math.floor(Math.random()*3);
+    const arr=[b,b,b]; arr[pos]=a; return arr;
+  } else {
+    let a=s(), b=s(), c=s();
+    while(b===a) b=s();
+    while(c===a || c===b) c=s();
     return [a,b,c];
   }
 }
+function neighbors(symbol){
+  const i = SYMBOLS.indexOf(symbol);
+  return {top: SYMBOLS[(i-1+SYMBOLS.length)%SYMBOLS.length], center: symbol, bottom: SYMBOLS[(i+1)%SYMBOLS.length]};
+}
+function evaluateLines(grid){
+  const lines = [
+    {name:"Arriba",    arr:[grid.r1.top,    grid.r2.top,    grid.r3.top]},
+    {name:"Centro",    arr:[grid.r1.center, grid.r2.center, grid.r3.center]},
+    {name:"Abajo",     arr:[grid.r1.bottom, grid.r2.bottom, grid.r3.bottom]},
+    {name:"Diag ↘",    arr:[grid.r1.top,    grid.r2.center, grid.r3.bottom]},
+    {name:"Diag ↗",    arr:[grid.r1.bottom, grid.r2.center, grid.r3.top]},
+  ];
+  for(const L of lines){
+    const [a,b,c]=L.arr;
+    if(a===b && b===c) return {kind:"triple", prize:10000, line:L.name, symbol:a};
+  }
+  for(const L of lines){
+    const [a,b,c]=L.arr;
+    if(a===b || b===c || a===c) return {kind:"pair", prize:2000, line:L.name, symbol:(a===b?a:(a===c?a:b))};
+  }
+  return {kind:"none", prize:1000, line:null, symbol:null};
+}
 
-/* Spin (rápido + más vueltas) */
+/* Spin */
 document.addEventListener('click',()=>AudioKit.unlock(),{once:true});
 
 spinBtn.addEventListener('click', ()=>{
@@ -484,16 +631,18 @@ spinBtn.addEventListener('click', ()=>{
   hintEl.textContent='—';
   if(soundOn) stopLoop = AudioKit.spinLoop();
 
-  const outcome = pickOutcome();
-  const SYMBOLS = ["💎","7","🍒","🔔","⭐","BET300"];
+  const centers = pickCenters();
+  const g = { r1: neighbors(centers[0]), r2: neighbors(centers[1]), r3: neighbors(centers[2]) };
+  const verdict = evaluateLines(g);
+
   const idx = s => SYMBOLS.indexOf(s);
-  const indexes = outcome.map(idx);
+  const indexes = centers.map(idx);
 
   const baseTurns = [11,13,15];
-  const targetY = [0,0,0].map((_,i)=> baseTurns[i] + indexes[i] + Math.random()*0.15);
+  const targetY = [0,0,0].map((_,i)=> baseTurns[i] + indexes[i] + Math.random()*0.12);
 
   const start = performance.now();
-  const dur = [1400,1700,2000];
+  const dur = [1300,1600,1900];
 
   (function anim(t){
     let done=0;
@@ -504,29 +653,24 @@ spinBtn.addEventListener('click', ()=>{
       if(k>=1) done++;
     }
     if(done<3){ requestAnimationFrame(anim); }
-    else { onStop(outcome); }
+    else { onStop(centers, g, verdict); }
   })(start);
 });
 
-async function onStop(outcome){
+async function onStop(centers, grid, verdict){
   if(soundOn && stopLoop) { stopLoop(); stopLoop=null; }
-  const [a,b,c]=outcome;
-  resultLine.textContent = `Rodillos: ${outcome.join(" | ")}`;
 
-  // Activar halo si es triple BET300 (efecto 1.2s)
-  if(a==="BET300" && b==="BET300" && c==="BET300"){
-    haloActive = true;
-    haloUntil = Date.now() + 1200;
+  // Halo si triple BET300
+  if(verdict.kind==="triple" && verdict.symbol==="BET300"){
+    haloActive = true; haloUntil = Date.now() + 1200;
   }
 
-  // Premios fijos redondos
-  let prizeValue = 1000;
-  if(a===b && b===c) prizeValue = 10000;
-  else if(a===b || a===c || b===c) prizeValue = 2000;
-
+  // premio
+  const prizeValue = verdict.prize;
   const prizeLabel = money(prizeValue);
   const code = await makeClaimCode(prizeLabel);
   const ts   = tsString(new Date());
+
   localStorage.setItem('slot_code', code);
   localStorage.setItem('slot_ts', ts);
   localStorage.setItem('slot_prize', JSON.stringify({type:'money', value:prizeValue}));
@@ -541,10 +685,18 @@ async function onStop(outcome){
   claimBtn.disabled=false;
   claimBtn.onclick=()=>location.href=`https://wa.me/${WP}?text=${encodeURIComponent(msg)}`;
 
+  const lineTxt = verdict.line ? ` · Línea: ${verdict.line}` : '';
+  const centersTxt = `Centro: ${centers.join(" | ")}`;
+  resultLine.textContent = (verdict.kind==="triple") ? `3 iguales${lineTxt}. ${centersTxt}` :
+                           (verdict.kind==="pair")   ? `2 iguales${lineTxt}. ${centersTxt}` :
+                                                       `Sin línea ganadora. ${centersTxt}`;
+
+  // Resaltar línea ganadora por ~1s
+  if(verdict.line) flashWin(verdict.line);
+
   if(soundOn) AudioKit.win();
   confettiBurst();
 
-  // Abrir modal automáticamente luego del halo (si activo) o al instante
   const delay = haloActive ? Math.max(0, haloUntil - Date.now()) : 0;
   setTimeout(()=> openModal(prizeLabel, code, ts), delay);
 
@@ -553,6 +705,7 @@ async function onStop(outcome){
 
 /* Init */
 function init(){
+  sizeFx(); placeBulbs();
   restoreDaily(); restorePrizeIfAny(); tickCountdown();
   setInterval(tickCountdown,1000); scheduleMidnightReset();
   reelY=[0,0,0];
