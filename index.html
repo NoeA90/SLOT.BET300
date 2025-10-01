@@ -48,14 +48,16 @@ h1{font-size:24px}
 .muted{color:var(--muted)}
 .badgeGold{display:inline-block;padding:4px 10px;border-radius:10px;background:linear-gradient(90deg,#ffd166,#ffaf66);color:#0a0f20;font-weight:900}
 
-/* —— SLOT —— */
+/* —— SLOT rectangular —— */
 .slotShell{position:relative;margin-top:8px}
-.lightFrame{position:absolute;inset:-8px;border-radius:18px;pointer-events:none}
-.lightFrame i{position:absolute;width:8px;height:8px;border-radius:50%;
-  box-shadow:0 0 6px rgba(255,255,255,.45)}
-.slot{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;background:#0b1333;border:1px solid #22295e;border-radius:14px;padding:10px}
-.reel{background:#0d163d;border:1px solid #2a3170;border-radius:12px;padding:10px;display:grid;grid-template-rows:1fr 1fr 1fr;gap:8px}
-.cell{background:linear-gradient(180deg,#0c1537,#0b112d);border:1px solid #2b356a;border-radius:12px;display:grid;place-items:center;overflow:hidden}
+.machine{position:relative;border-radius:16px;background:#0a1230;border:1px solid #2a2f66;padding:14px}
+.machine::before{ /* borde exterior para más presencia */
+  content:"";position:absolute;inset:-8px;border-radius:20px;border:2px solid rgba(255,255,255,.06);pointer-events:none}
+.lightFrame{position:absolute;inset:-6px;border-radius:18px;pointer-events:none}
+.light{position:absolute;width:8px;height:8px;border-radius:50%;box-shadow:0 0 8px rgba(255,255,255,.5)}
+.slot{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;background:#0b1333;border:1px solid #22295e;border-radius:14px;padding:12px}
+.reel{background:#0d163d;border:1px solid #2a3170;border-radius:10px;padding:10px;display:grid;grid-template-rows:1fr 1fr 1fr;gap:10px}
+.cell{background:linear-gradient(180deg,#0c1537,#0b112d);border:1px solid #2b356a;border-radius:10px;display:grid;place-items:center;overflow:hidden}
 .canvasSym{width:100%;height:100%}
 
 /* Resultado / premio */
@@ -109,22 +111,24 @@ h1{font-size:24px}
         </div>
 
         <div class="slotShell">
-          <div class="lightFrame" id="lightFrame"></div>
-          <div class="slot" id="slot">
-            <div class="reel" id="reel1">
-              <div class="cell"><canvas class="canvasSym" id="r1t"></canvas></div>
-              <div class="cell"><canvas class="canvasSym" id="r1c"></canvas></div>
-              <div class="cell"><canvas class="canvasSym" id="r1b"></canvas></div>
-            </div>
-            <div class="reel" id="reel2">
-              <div class="cell"><canvas class="canvasSym" id="r2t"></canvas></div>
-              <div class="cell"><canvas class="canvasSym" id="r2c"></canvas></div>
-              <div class="cell"><canvas class="canvasSym" id="r2b"></canvas></div>
-            </div>
-            <div class="reel" id="reel3">
-              <div class="cell"><canvas class="canvasSym" id="r3t"></canvas></div>
-              <div class="cell"><canvas class="canvasSym" id="r3c"></canvas></div>
-              <div class="cell"><canvas class="canvasSym" id="r3b"></canvas></div>
+          <div class="machine">
+            <div class="lightFrame" id="lightFrame"></div>
+            <div class="slot" id="slot">
+              <div class="reel" id="reel1">
+                <div class="cell"><canvas class="canvasSym" id="r1t"></canvas></div>
+                <div class="cell"><canvas class="canvasSym" id="r1c"></canvas></div>
+                <div class="cell"><canvas class="canvasSym" id="r1b"></canvas></div>
+              </div>
+              <div class="reel" id="reel2">
+                <div class="cell"><canvas class="canvasSym" id="r2t"></canvas></div>
+                <div class="cell"><canvas class="canvasSym" id="r2c"></canvas></div>
+                <div class="cell"><canvas class="canvasSym" id="r2b"></canvas></div>
+              </div>
+              <div class="reel" id="reel3">
+                <div class="cell"><canvas class="canvasSym" id="r3t"></canvas></div>
+                <div class="cell"><canvas class="canvasSym" id="r3c"></canvas></div>
+                <div class="cell"><canvas class="canvasSym" id="r3b"></canvas></div>
+              </div>
             </div>
           </div>
           <div class="small">Tip: mejor visual en vertical 📱</div>
@@ -166,25 +170,24 @@ h1{font-size:24px}
 </div>
 
 <script>
-/* ====== Config plataforma + WhatsApp por PC ====== */
+/* ====== Config plataforma + WhatsApp por PC (corregido) ====== */
 const params = new URLSearchParams(location.search);
 const pc = (params.get('pc')||'1').trim();
 const PLATFORM = "https://alvg.bet300vip.com";
 const WPS = {
-  "1":"54911131583516",
-  "2":"549111126695257",
-  "3":"549111125368306",
-  "4":"549111150030414"
+  "1":"5491131583516",
+  "2":"5491126695257",
+  "3":"5491125368306",
+  "4":"5491150030414"
 };
 const WP = WPS[pc] || WPS["1"];
 document.getElementById('playNow').href = PLATFORM;
 
 /* ====== Antifraude: device id + hash visible ====== */
-const SALT = "bet300-slotx-v1";
+const SALT = "bet300-slotx-v2r";
 function ensureDeviceId(){
   let id = localStorage.getItem('device_id');
-  if(!id){ id = (crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2,8)}`);
-    localStorage.setItem('device_id', id);}
+  if(!id){ id = (crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2,8)}`); localStorage.setItem('device_id', id);}
   return id;
 }
 const DEVICE_ID = ensureDeviceId();
@@ -205,30 +208,31 @@ async function makeClaimCode(prizeLabel){
   return hex.slice(0,10);
 }
 
-/* ====== Luces marco ====== */
-(function buildBulbs(){
-  const f = document.getElementById('lightFrame');
+/* ====== Luces rectangulares ====== */
+(function buildRectBulbs(){
+  const frame = document.getElementById('lightFrame');
   const colors = ["#ffd166","#8bdcff","#b79dff","#69ffc9"];
-  const N = 56;
-  for(let i=0;i<N;i++){
-    const b=document.createElement('i');
-    const t=i/N;
-    const ang=t*Math.PI*2;
-    const inset=8;
-    b.style.left = (50 + Math.cos(ang)*50) + "%";
-    b.style.top  = (50 + Math.sin(ang)*50)  + "%";
-    b.style.transform="translate(-50%,-50%)";
-    b.style.background = colors[i%colors.length];
-    b.style.boxShadow = `0 0 10px ${colors[i%colors.length]}`;
-    b.style.animation = `blink${i%4} 1.2s linear ${i*0.05}s infinite`;
-    f.appendChild(b);
+  const pad = 6; // sobre el borde interior
+  const perSide = 18;
+  const total = perSide*4;
+  for(let i=0;i<total;i++){
+    const d=document.createElement('i'); d.className='light';
+    d.style.background=colors[i%colors.length]; d.style.boxShadow=`0 0 10px ${colors[i%colors.length]}`;
+    const side = Math.floor(i/perSide); // 0 top,1 right,2 bottom,3 left
+    const t = (i%perSide)/(perSide-1);
+    if(side===0){ d.style.top=pad+"px"; d.style.left=`calc(${t*100}% - 4px)`; }
+    if(side===1){ d.style.right=pad+"px"; d.style.top=`calc(${t*100}% - 4px)`; }
+    if(side===2){ d.style.bottom=pad+"px"; d.style.left=`calc(${t*100}% - 4px)`; }
+    if(side===3){ d.style.left=pad+"px"; d.style.top=`calc(${t*100}% - 4px)`; }
+    d.style.animation=`blink${i%4} 1.2s linear ${i*0.05}s infinite`;
+    frame.appendChild(d);
   }
   const style=document.createElement('style');
-  style.textContent = `
-  @keyframes blink0{0%{opacity:.3}50%{opacity:1}100%{opacity:.3}}
-  @keyframes blink1{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}
-  @keyframes blink2{0%{opacity:.6}50%{opacity:1}100%{opacity:.6}}
-  @keyframes blink3{0%{opacity:.9}50%{opacity:.3}100%{opacity:.9}}
+  style.textContent=`
+    @keyframes blink0{0%{opacity:.3}50%{opacity:1}100%{opacity:.3}}
+    @keyframes blink1{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}
+    @keyframes blink2{0%{opacity:.6}50%{opacity:1}100%{opacity:.6}}
+    @keyframes blink3{0%{opacity:.9}50%{opacity:.3}100%{opacity:.9}}
   `;
   document.head.appendChild(style);
 })();
@@ -261,7 +265,7 @@ const SYMBOLS = [
   {name:"CHERRY", draw:(ctx)=>{drawCherry(ctx)}},
   {name:"BELL", draw:(ctx)=>{drawBell(ctx)}},
   {name:"SEVEN", draw:(ctx)=>{drawSeven(ctx)}},
-  {name:"BET300", draw:(ctx)=>{drawBetSeal(ctx)}}, // logo jackpot
+  {name:"BET300", draw:(ctx)=>{drawBetSeal(ctx)}},
 ];
 
 function baseCanvas(ctx){
@@ -333,7 +337,7 @@ function drawBetSeal(ctx){
   ctx.restore();
 }
 
-/* ====== Helpers de render ====== */
+/* ====== Render helpers ====== */
 function drawSymbolToCanvas(canvas, sym){
   const dpr = window.devicePixelRatio || 1;
   const W = Math.floor(canvas.clientWidth * dpr);
@@ -345,121 +349,74 @@ function drawSymbolToCanvas(canvas, sym){
   SYMBOLS[sym].draw(ctx);
 }
 
-/* ====== Motor de “carrete” ====== */
+/* ====== Motor de carrete ====== */
 const N = SYMBOLS.length;
 let spinning=false;
-const reelFinalIndex=[0,1,2]; // índice central final por rodillo
+const reelFinalIndex=[0,1,2];
 
-// — Probabilidades — ajustables
-const PROB = {
-  jackpot: 0.10,     // 3 BET300
-  triple:  0.20,     // 3 iguales (no BET300)
-  pair:    0.35,     // 2 iguales
-  none:    0.35      // sin línea
-};
+// Probabilidades
+const PROB = { jackpot:0.10, triple:0.20, pair:0.35, none:0.35 };
 
-// Elegimos resultado objetivo (centros) coherente con probabilidades
+function idxByName(name){ return SYMBOLS.findIndex(s=>s.name===name); }
+
 function pickCenters(){
-  const r=Math.random();
-  // Normalizamos por si alguien toca los números
-  const pJ=PROB.jackpot, pT=pJ+PROB.triple, pP=pT+PROB.pair;
-  if(r<pJ){
-    // jackpot: los 3 centros BET300
-    return [idxByName("BET300"), idxByName("BET300"), idxByName("BET300")];
-  }else if(r<pT){
-    // triple: 3 iguales (no BET300)
+  const r=Math.random(), pJ=PROB.jackpot, pT=pJ+PROB.triple, pP=pT+PROB.pair;
+  if(r<pJ) return [idxByName("BET300"), idxByName("BET300"), idxByName("BET300")];
+  if(r<pT){
     let pool = SYMBOLS.map(s=>s.name).filter(n=>n!=="BET300");
     const pick = pool[Math.floor(Math.random()*pool.length)];
     const idx = idxByName(pick);
     return [idx,idx,idx];
-  }else if(r<pP){
-    // par: 2 iguales + 1 distinto al azar
-    const pick = SYMBOLS[Math.floor(Math.random()*N)].name;
-    const idx = idxByName(pick);
-    let other;
-    do{ other = Math.floor(Math.random()*N); } while(other===idx);
-    // Mezclamos posición del distinto
-    const pos = Math.floor(Math.random()*3);
-    const arr=[idx,idx,idx];
-    arr[pos]=other;
-    return arr;
-  }else{
-    // ninguno: los 3 centros diferentes y que no formen línea horizontal en otras filas
-    let a,b,c;
-    while(true){
-      a=Math.floor(Math.random()*N);
-      do{ b=Math.floor(Math.random()*N);}while(b===a);
-      do{ c=Math.floor(Math.random()*N);}while(c===a || c===b);
-      // permitir cualquier trio distinto; el chequeo de líneas se hace luego por top/bottom,
-      // pero al ser desplazamientos ±1, la chance de accidental triple es mínima.
-      break;
-    }
-    return [a,b,c];
   }
+  if(r<pP){
+    const pick = Math.floor(Math.random()*N);
+    let other; do{ other = Math.floor(Math.random()*N);} while(other===pick);
+    const pos=Math.floor(Math.random()*3);
+    const arr=[pick,pick,pick]; arr[pos]=other; return arr;
+  }
+  // ninguno: tres distintos
+  let a,b,c; do{a=Math.floor(Math.random()*N); b=Math.floor(Math.random()*N);}while(b===a);
+  do{c=Math.floor(Math.random()*N);}while(c===a||c===b);
+  return [a,b,c];
 }
 
-function idxByName(name){
-  return SYMBOLS.findIndex(s=>s.name===name);
-}
-
-// Dibuja todo el grid (top/center/bottom por rodillo) desde índices centrales
 function renderFromCenters(c1,c2,c3){
-  // por cada rodillo: top = idx-1, center=idx, bottom=idx+1 (cíclico)
   const triple = [
-    [c1, (c1-1+N)%N, (c1+1)%N], // center, top, bottom
+    [c1, (c1-1+N)%N, (c1+1)%N],
     [c2, (c2-1+N)%N, (c2+1)%N],
     [c3, (c3-1+N)%N, (c3+1)%N]
   ];
-  // Reel 1
   drawSymbolToCanvas(document.getElementById('r1t'), triple[0][1]);
   drawSymbolToCanvas(document.getElementById('r1c'), triple[0][0]);
   drawSymbolToCanvas(document.getElementById('r1b'), triple[0][2]);
-  // Reel 2
+
   drawSymbolToCanvas(document.getElementById('r2t'), triple[1][1]);
   drawSymbolToCanvas(document.getElementById('r2c'), triple[1][0]);
   drawSymbolToCanvas(document.getElementById('r2b'), triple[1][2]);
-  // Reel 3
+
   drawSymbolToCanvas(document.getElementById('r3t'), triple[2][1]);
   drawSymbolToCanvas(document.getElementById('r3c'), triple[2][0]);
   drawSymbolToCanvas(document.getElementById('r3b'), triple[2][2]);
 
-  // guardamos últimos finales
   reelFinalIndex[0]=c1; reelFinalIndex[1]=c2; reelFinalIndex[2]=c3;
 }
 
-/* ====== Evaluación coherente con lo visible ====== */
 function buildGridFromFinals(){
-  // nombres exactos visibles en cada celda
-  const g={
-    r1:{
-      top: SYMBOLS[(reelFinalIndex[0]-1+N)%N].name,
-      center: SYMBOLS[reelFinalIndex[0]].name,
-      bottom: SYMBOLS[(reelFinalIndex[0]+1)%N].name
-    },
-    r2:{
-      top: SYMBOLS[(reelFinalIndex[1]-1+N)%N].name,
-      center: SYMBOLS[reelFinalIndex[1]].name,
-      bottom: SYMBOLS[(reelFinalIndex[1]+1)%N].name
-    },
-    r3:{
-      top: SYMBOLS[(reelFinalIndex[2]-1+N)%N].name,
-      center: SYMBOLS[reelFinalIndex[2]].name,
-      bottom: SYMBOLS[(reelFinalIndex[2]+1)%N].name
-    }
+  return {
+    r1:{ top:SYMBOLS[(reelFinalIndex[0]-1+N)%N].name, center:SYMBOLS[reelFinalIndex[0]].name, bottom:SYMBOLS[(reelFinalIndex[0]+1)%N].name },
+    r2:{ top:SYMBOLS[(reelFinalIndex[1]-1+N)%N].name, center:SYMBOLS[reelFinalIndex[1]].name, bottom:SYMBOLS[(reelFinalIndex[1]+1)%N].name },
+    r3:{ top:SYMBOLS[(reelFinalIndex[2]-1+N)%N].name, center:SYMBOLS[reelFinalIndex[2]].name, bottom:SYMBOLS[(reelFinalIndex[2]+1)%N].name }
   };
-  return g;
 }
 
-function evaluateLines(grid){
+function evaluateLines(g){
   const lines = [
-    {name:"Arriba",    arr:[grid.r1.top,    grid.r2.top,    grid.r3.top]},
-    {name:"Centro",    arr:[grid.r1.center, grid.r2.center, grid.r3.center]},
-    {name:"Abajo",     arr:[grid.r1.bottom, grid.r2.bottom, grid.r3.bottom]},
-    {name:"Diag ↘",    arr:[grid.r1.top,    grid.r2.center, grid.r3.bottom]},
-    {name:"Diag ↗",    arr:[grid.r1.bottom, grid.r2.center, grid.r3.top]},
+    {name:"Arriba", arr:[g.r1.top, g.r2.top, g.r3.top]},
+    {name:"Centro", arr:[g.r1.center, g.r2.center, g.r3.center]},
+    {name:"Abajo",  arr:[g.r1.bottom, g.r2.bottom, g.r3.bottom]},
+    {name:"Diag ↘", arr:[g.r1.top, g.r2.center, g.r3.bottom]},
+    {name:"Diag ↗", arr:[g.r1.bottom, g.r2.center, g.r3.top]},
   ];
-
-  // 1) triples primero (prioridad máxima)
   for(const L of lines){
     const [a,b,c]=L.arr;
     if(a===b && b===c){
@@ -467,7 +424,6 @@ function evaluateLines(grid){
       return {kind:"triple", prize:5000, line:L.name, symbol:a};
     }
   }
-  // 2) pares
   for(const L of lines){
     const [a,b,c]=L.arr;
     if(a===b || a===c || b===c){
@@ -475,7 +431,6 @@ function evaluateLines(grid){
       return {kind:"pair", prize:2000, line:L.name, symbol:sym};
     }
   }
-  // 3) nada
   return {kind:"none", prize:1000, line:null, symbol:null};
 }
 
@@ -498,48 +453,20 @@ function setAmount(n){ amountEl.textContent = n.toLocaleString("es-AR",{style:"c
 
 function animateSpin(targetCenters){
   return new Promise(resolve=>{
-    // animación simple: interpolamos muchos pasos por reel hasta el final
-    const steps=[42,52,64]; // más pasos = más vueltas
-    const speed=[14,12,10]; // menor = más rápido
+    const steps=[40,50,60], speed=[14,12,10];
     const stopTicks = soundOn ? AudioKit.spinTick() : null;
-
     const start = performance.now();
     const init = [Math.floor(Math.random()*N),Math.floor(Math.random()*N),Math.floor(Math.random()*N)];
-
     function frame(t){
-      let done=true;
-      const reels=[0,1,2];
-      reels.forEach((ri)=>{
-        const total=steps[ri];
-        const elapsed = (t-start)/speed[ri];
-        let k=Math.min(1, elapsed/total);
-        // easing out cúbico
-        const ease=1-Math.pow(1-k,3);
-        // posición intermedia
-        const pos = Math.floor(init[ri] + ease*( (init[ri]+total) - init[ri] ));
-        // el "centro visible" durante spin
-        const curCenter = (pos % N);
-        // en el último frame, fijamos target exacto
-        const center = (k>=1) ? targetCenters[ri] : curCenter;
-        // render provisional con ese centro + los otros centros actuales
-      });
-      // dibujar con mezcla: usamos target cuando cada reel completa
-      const k1=Math.min(1, (t-start)/speed[0]/steps[0]);
-      const k2=Math.min(1, (t-start)/speed[1]/steps[1]);
-      const k3=Math.min(1, (t-start)/speed[2]/steps[2]);
-
-      const e1=1-Math.pow(1-k1,3), e2=1-Math.pow(1-k2,3), e3=1-Math.pow(1-k3,3);
-      const c1 = (k1>=1) ? targetCenters[0] : ( (Math.floor(init[0]+e1*steps[0])) % N );
-      const c2 = (k2>=1) ? targetCenters[1] : ( (Math.floor(init[1]+e2*steps[1])) % N );
-      const c3 = (k3>=1) ? targetCenters[2] : ( (Math.floor(init[2]+e3*steps[2])) % N );
+      const K = (ri)=>Math.min(1, (t-start)/speed[ri]/steps[ri]);
+      const E = (k)=>1-Math.pow(1-k,3);
+      const c1 = (K(0)>=1) ? targetCenters[0] : ( (Math.floor(init[0]+E(K(0))*steps[0])) % N );
+      const c2 = (K(1)>=1) ? targetCenters[1] : ( (Math.floor(init[1]+E(K(1))*steps[1])) % N );
+      const c3 = (K(2)>=1) ? targetCenters[2] : ( (Math.floor(init[2]+E(K(2))*steps[2])) % N );
       renderFromCenters(c1,c2,c3);
-
-      done = (k1>=1 && k2>=1 && k3>=1);
-      if(!done){ requestAnimationFrame(frame); }
-      else{
-        if(stopTicks) stopTicks();
-        resolve();
-      }
+      if(K(0)>=1 && K(1)>=1 && K(2)>=1){
+        if(stopTicks) stopTicks(); resolve();
+      }else requestAnimationFrame(frame);
     }
     requestAnimationFrame(frame);
   });
@@ -563,7 +490,7 @@ function tickCountdown(){
 }
 setInterval(tickCountdown,1000); tickCountdown();
 
-/* ====== Init: estado inicial visible ====== */
+/* ====== Init ====== */
 renderFromCenters(0,1,2);
 setAmount(0);
 titleEl.textContent="—";
@@ -579,13 +506,10 @@ spinBtn.addEventListener('click', async ()=>{
   const centersTarget = pickCenters();
   await animateSpin(centersTarget);
 
-  // ahora render ya dejó los centros exactos -> armamos grid y evaluamos
   const grid = buildGridFromFinals();
   const verdict = evaluateLines(grid);
-
   const centersNames = [grid.r1.center, grid.r2.center, grid.r3.center].join(" | ");
 
-  // Título/resultado
   titleEl.textContent =
     (verdict.kind==="jackpot") ? "🏆 ¡JACKPOT $10.000!" :
     (verdict.kind==="triple")  ? "🎉 ¡3 iguales!" :
@@ -599,7 +523,6 @@ spinBtn.addEventListener('click', async ()=>{
     (verdict.kind==="pair")    ? `2 iguales${lineTxt}. Centro: ${centersNames}` :
                                  `Sin acierto. Centro: ${centersNames}`;
 
-  // Monto + código + hora
   setAmount(verdict.prize);
   const ts = tsString(new Date());
   const code = await makeClaimCode(verdict.prize.toString());
@@ -607,19 +530,17 @@ spinBtn.addEventListener('click', async ()=>{
   localStorage.setItem('slot_ts',ts);
   stampLine.textContent = `Código: ${code} · ${ts}`;
 
-  // Modal listo
-  mTitle.textContent = titleEl.textContent;
-  mPrize.textContent = verdict.prize.toLocaleString("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0});
-  mCode.textContent = code;
-  mTs.textContent = ts;
-  const msg = whatsappText(mPrize.textContent);
-  mClaim.onclick = ()=>location.href=`https://wa.me/${WP}?text=${encodeURIComponent(msg)}`;
+  // Modal
+  document.getElementById('mTitle').textContent = titleEl.textContent;
+  document.getElementById('mPrize').textContent = verdict.prize.toLocaleString("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0});
+  document.getElementById('mCode').textContent = code;
+  document.getElementById('mTs').textContent = ts;
+  const msg = whatsappText(document.getElementById('mPrize').textContent);
+  document.getElementById('mClaim').onclick=()=>location.href=`https://wa.me/${WP}?text=${encodeURIComponent(msg)}`;
 
   claimBtn.disabled=false;
   if(soundOn) AudioKit.win();
-
-  // abrir modal auto
-  prizeModal.style.display="flex";
+  document.getElementById('prizeModal').style.display="flex";
 
   spinning=false; spinBtn.disabled=false;
 });
@@ -629,24 +550,14 @@ claimBtn.addEventListener('click', ()=>{
   location.href = `https://wa.me/${WP}?text=${encodeURIComponent(msg)}`;
 });
 
-mClose.addEventListener('click', ()=>{ prizeModal.style.display="none"; });
+mClose.addEventListener('click', ()=>{ document.getElementById('prizeModal').style.display="none"; });
 prizeModal.addEventListener('click', (e)=>{ if(e.target===prizeModal) prizeModal.style.display="none"; });
 
-/* ====== Responsive: garantizar que no scrollee en móvil ====== */
+/* ====== Responsive: sin scroll en móvil ====== */
 function fitHeights(){
-  // Reducimos un poco el alto del slot en pantallas chicas
-  const vh = Math.max(window.innerHeight, 560);
-  const slot = document.getElementById('slot');
   const isMobile = window.innerWidth < 520;
-  const rows = 3;
-  const topPad = isMobile ? 6 : 10;
-  slot.style.padding = isMobile ? "8px" : "10px";
-
-  // altura por celda
-  const cellH = isMobile ? 90 : 120;
-  document.querySelectorAll('.cell').forEach(c=>{
-    c.style.height = cellH+"px";
-  });
+  const cellH = isMobile ? 92 : 120;          /* rectangular */
+  document.querySelectorAll('.cell').forEach(c=>{ c.style.height = cellH+"px"; });
 }
 addEventListener('resize', ()=>{ clearTimeout(window.__fitTo); window.__fitTo=setTimeout(fitHeights,120); });
 fitHeights();
