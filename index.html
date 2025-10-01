@@ -39,7 +39,6 @@ h1{font-size:22px}
 .rightTop{margin-left:auto;display:flex;gap:8px;align-items:center}
 .btnLink{display:inline-flex;gap:8px;align-items:center;padding:10px 12px;border-radius:12px;font-weight:800;
   background:linear-gradient(90deg,#7c59ff,#00d1ff);color:#0a0f1f;text-decoration:none;border:1px solid rgba(255,255,255,.06)}
-.btnLink .icon{filter:drop-shadow(0 2px 8px rgba(0,0,0,.35))}
 .panel{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:14px}
 .center{text-align:center}
 .stat{display:flex;gap:12px;align-items:center;justify-content:center;margin:8px 0 12px}
@@ -73,10 +72,45 @@ canvas{width:100%;height:140px;display:block;border-radius:10px;background:linea
 .confetti{position:fixed;inset:0;pointer-events:none;z-index:40}
 .confetti i{position:absolute;top:-20px;width:10px;height:14px;border-radius:2px;opacity:0;animation:confFall 1.6s linear forwards}
 @keyframes confFall{8%{opacity:1}100%{transform:translateY(110vh) rotate(360deg);opacity:0}}
+
+/* ===== Modal premio ===== */
+.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(4,6,14,.6);backdrop-filter:blur(4px);z-index:60}
+.modal.show{display:flex}
+.modalCard{width:min(520px,92vw);background:var(--panel2);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.45)}
+.modalHead{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.modalHead h3{margin:0;font-size:18px}
+.modalBody{display:grid;gap:8px}
+.row{display:flex;gap:8px;align-items:center;justify-content:space-between;border:1px dashed var(--border);border-radius:12px;padding:10px}
+.k{color:var(--muted);font-size:13px}
+.v{font-weight:800}
+.actions{display:flex;gap:10px;margin-top:10px}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+.closeX{margin-left:auto;cursor:pointer;opacity:.8}
+.closeX:hover{opacity:1}
 </style>
 </head>
 <body>
 <div id="confetti" class="confetti" aria-hidden="true"></div>
+
+<!-- MODAL PREMIO -->
+<div id="prizeModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modalCard">
+    <div class="modalHead">
+      <h3 id="modalTitle">🎁 Premio obtenido</h3>
+      <span id="closeModal" class="closeX">✖</span>
+    </div>
+    <div class="modalBody">
+      <div class="row"><span class="k">Premio</span><span class="v" id="mPrize">—</span></div>
+      <div class="row"><span class="k">Código</span><span class="v" id="mCode">—</span></div>
+      <div class="row"><span class="k">Fecha/Hora</span><span class="v" id="mTs">—</span></div>
+      <div class="row"><span class="k">PC</span><span class="v" id="mPc">—</span></div>
+      <div class="actions">
+        <button id="mClaim" class="btn ok">📲 Reclamar por WhatsApp</button>
+        <button id="mClose" class="btn ghost">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="container">
   <div class="card">
@@ -86,16 +120,14 @@ canvas{width:100%;height:140px;display:block;border-radius:10px;background:linea
       <span class="pill time">⚡ Tiempo limitado <span class="count" id="countdown">--:--</span></span>
       <span class="pill sound" id="soundToggle">🔊 Sonido: <b id="soundState">ON</b></span>
       <div class="rightTop">
-        <a id="playNow" class="btnLink" target="_blank" rel="noopener">
-          <span class="icon">🎮</span><span>Entrar a la plataforma</span>
-        </a>
+        <a id="playNow" class="btnLink" target="_blank" rel="noopener"><span>🎮 Entrar a la plataforma</span></a>
       </div>
     </div>
 
     <div class="grid">
       <div class="panel">
         <h1>Slot Express · 3 rodillos</h1>
-        <p class="muted">3 iguales = <span class="badgeWin">$10.000</span> (10% prob.). 🃏🃏🃏 habilita <b>re-tiro gratis</b>. Si no, <b>premio garantizado</b>.</p>
+        <p class="muted">3 iguales = <span class="badgeWin">$10.000</span> · 2 iguales = <b>$2.000</b> · sin match = <b>$1.000</b>. Premio con tu próxima carga mínima.</p>
         <div class="stage">
           <div class="slotWrap slot">
             <div class="shadowTop"></div>
@@ -155,21 +187,8 @@ const params = new URLSearchParams(location.search);
 const pc = (params.get('pc')||"1").trim();
 const WP = WP_NUMBERS["pc"+(pc.match(/^[1-4]$/)?pc:"1")];
 
-/* ===== Premios ===== */
-const BASE_PRIZES = [
-  {type:'money', value:2000},
-  {type:'money', value:1000},
-  {type:'percent', value:10}
-];
-const MID_PRIZES = [
-  {type:'money', value:3000},
-  {type:'percent', value:12}
-];
-// 3 iguales = $10.000 fijo (máximo)
-const JACKPOT = {type:'money', value:10000};
-
 /* ===== Antifraude ===== */
-const SALT = "bet300-slot-v2";
+const SALT = "bet300-slot-v4";
 function ensureDeviceId(){
   let id = localStorage.getItem('device_id');
   if(!id){ id = (crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2,8)}`); localStorage.setItem('device_id', id); }
@@ -213,10 +232,13 @@ const AudioKit = (()=>{
 soundToggle.addEventListener('click',()=>{ soundOn=!soundOn; soundState.textContent=soundOn?'ON':'OFF';});
 
 /* ===== Reels (canvas) ===== */
-const SYMBOLS = ["💎","7","🍒","🔔","⭐","🃏"]; // incluye JOKER
+const SYMBOLS = ["💎","7","🍒","🔔","⭐","BET300"]; // BET300 → sello circular
 const COLS = [document.getElementById('r1'),document.getElementById('r2'),document.getElementById('r3')].map(c=>c.getContext('2d'));
-const W = ()=>COLS[0].canvas.width, H = ()=>COLS[0].canvas.height;
 let reelY = [0,0,0], spinning=false;
+
+/* Halo especial (triple BET300) */
+let haloActive = false;
+let haloUntil = 0;
 
 function roundRect(ctx,x,y,w,h,r,fill=true,stroke=true,fillStyle){
   let rr = Math.min(r, w/2, h/2);
@@ -224,16 +246,88 @@ function roundRect(ctx,x,y,w,h,r,fill=true,stroke=true,fillStyle){
   ctx.moveTo(x+rr,y);
   ctx.arcTo(x+w,y,x+w,y+h,rr);
   ctx.arcTo(x+w,y+h,x,y+h,rr);
-  ctx.arcTo(x,y+h,x,y,rr);
+  ctx.arcTo(x,y,h,y,rr);
   ctx.arcTo(x,y,x+w,y,rr);
   if(fill){ ctx.fillStyle = fillStyle || ctx.fillStyle; ctx.fill(); }
   if(stroke){ ctx.stroke(); }
 }
+
+/* === Dibujo del "sello circular" BET300 === */
+function drawSealBET300(ctx, x, y, cell){
+  const r = cell*0.34; // radio del sello
+  // aro externo con brillo
+  const ringGrad = ctx.createRadialGradient(x,y,r*0.4, x,y,r);
+  ringGrad.addColorStop(0,"rgba(255,255,255,.25)");
+  ringGrad.addColorStop(1,"rgba(255,255,255,.05)");
+  ctx.beginPath();
+  ctx.arc(x,y,r,0,Math.PI*2);
+  ctx.fillStyle = "rgba(10,15,35,.9)";
+  ctx.fill();
+  ctx.lineWidth = Math.max(2,r*0.12);
+  ctx.strokeStyle = ringGrad;
+  ctx.stroke();
+
+  // disco interior con gradiente neón
+  const g = ctx.createLinearGradient(x,y-r,x,y+r);
+  g.addColorStop(0,"#7c59ff");
+  g.addColorStop(1,"#22d3ee");
+  ctx.beginPath();
+  ctx.arc(x,y,r*0.82,0,Math.PI*2);
+  ctx.fillStyle = g;
+  ctx.fill();
+
+  // texto BET / 300
+  ctx.save();
+  ctx.fillStyle = "#0a0f1f";
+  ctx.textAlign="center"; ctx.textBaseline="middle";
+  ctx.font = `800 ${Math.floor(cell*0.20)}px system-ui,Segoe UI,Roboto`;
+  ctx.fillText("BET", x, y - r*0.22);
+  ctx.font = `900 ${Math.floor(cell*0.26)}px system-ui,Segoe UI,Roboto`;
+  ctx.fillText("300", x, y + r*0.18);
+  ctx.restore();
+}
+
+/* Halo pulsante en el centro del reel (decorativo) */
+function drawHalo(ctx, t){
+  if(!haloActive) return;
+  const w=ctx.canvas.width, h=ctx.canvas.height;
+  const cx = w/2, cy = h/2;
+  const pct = (Math.sin(t/180)+1)/2; // 0..1
+  const r1 = (h/3)*0.55 + pct*10;
+  const r2 = r1 + 14 + pct*8;
+
+  const grad = ctx.createRadialGradient(cx,cy,r1*0.2, cx,cy,r2);
+  grad.addColorStop(0, "rgba(124,77,255,.28)");
+  grad.addColorStop(1, "rgba(34,211,238,.05)");
+  ctx.beginPath();
+  ctx.arc(cx,cy,r2,0,Math.PI*2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.lineWidth = 2 + pct*1.5;
+  ctx.strokeStyle = "rgba(255,255,255,.35)";
+  ctx.arc(cx,cy,r1,0,Math.PI*2);
+  ctx.stroke();
+}
+
+function drawSymbol(ctx, text, x, y, cell){
+  if(text==="BET300"){
+    drawSealBET300(ctx, x, y, cell);
+  }else{
+    ctx.save();
+    ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillStyle="#e9ecff";
+    ctx.font = `${Math.floor(cell*0.5)}px system-ui,Apple Color Emoji,Segoe UI Emoji`;
+    ctx.fillText(text, x, y);
+    ctx.restore();
+  }
+}
+
 function drawReel(ctx, y){
   const w=ctx.canvas.width, h=ctx.canvas.height;
   ctx.clearRect(0,0,w,h);
   const cell = h/3;
-  ctx.textAlign="center"; ctx.textBaseline="middle";
   for(let i=-1;i<5;i++){
     const sym = SYMBOLS[(i+Math.floor(y)) % SYMBOLS.length];
     const yy = (i - (y%1))*cell + h/2;
@@ -243,12 +337,19 @@ function drawReel(ctx, y){
     const grad=ctx.createLinearGradient(0,yy-cell/2,0,yy+cell/2);
     grad.addColorStop(0,"rgba(124,77,255,.25)"); grad.addColorStop(1,"rgba(34,211,238,.25)");
     roundRect(ctx, pad+2, yy-cell/2+8, w-(pad+2)*2, cell-16, r-2, true, false, grad);
-    ctx.font = `${Math.floor(cell*0.5)}px system-ui,Apple Color Emoji,Segoe UI Emoji`;
-    ctx.fillStyle = "#e9ecff";
-    ctx.fillText(sym, w/2, yy);
+    drawSymbol(ctx, sym, w/2, yy, cell);
   }
+  // halo decorativo (sobre centro visual)
+  drawHalo(ctx, Date.now()/10);
 }
-function renderAll(){ for(let i=0;i<3;i++) drawReel(COLS[i], reelY[i]); requestAnimationFrame(renderAll); }
+function renderAll(){
+  for(let i=0;i<3;i++){
+    drawReel(COLS[i], reelY[i]);
+  }
+  // apagar halo si pasó el tiempo
+  if(haloActive && Date.now()>haloUntil){ haloActive=false; }
+  requestAnimationFrame(renderAll);
+}
 renderAll();
 
 /* ===== UI ===== */
@@ -261,63 +362,38 @@ const resultLine = document.getElementById('resultLine');
 const stampEl = document.getElementById('stampLine');
 const hintEl = document.getElementById('hint');
 
+/* Modal refs */
+const prizeModal = document.getElementById('prizeModal');
+const mPrize = document.getElementById('mPrize');
+const mCode  = document.getElementById('mCode');
+const mTs    = document.getElementById('mTs');
+const mPc    = document.getElementById('mPc');
+const mClaim = document.getElementById('mClaim');
+const mClose = document.getElementById('mClose');
+const closeModalX = document.getElementById('closeModal');
+
+function openModal(prizeLabel, code, ts){
+  mPrize.textContent = prizeLabel;
+  mCode.textContent  = code;
+  mTs.textContent    = ts;
+  mPc.textContent    = "pc:"+(pc||"1");
+  const msg = whatsappText(prizeLabel);
+  mClaim.onclick = ()=>location.href=`https://wa.me/${WP}?text=${encodeURIComponent(msg)}`;
+  prizeModal.classList.add('show');
+}
+function closeModal(){ prizeModal.classList.remove('show'); }
+mClose.onclick = closeModal; closeModalX.onclick = closeModal;
+prizeModal.addEventListener('click',e=>{ if(e.target===prizeModal) closeModal(); });
+
 let stopLoop=null;
-let extraSpinsRemaining = 0;   // re-tiro por JOKER (máx 1)
-const EXTRA_SPIN_CAP = 1;
 
+/* Utils */
 function money(n){ return "$"+n.toLocaleString("es-AR"); }
-function label(p){ return p.type==='money' ? money(p.value) : `${p.value}%`; }
-function subtitleHTML(p){ return p.type==='money'
-  ? `Recibís <b>${money(p.value)} extra</b> con tu próxima carga.`
-  : `Recibís un <b>${p.value}% extra</b> con tu próxima carga.`; }
-
-function symbolIndex(sym){ return SYMBOLS.indexOf(sym); }
-
-/* ===== Probabilidades =====
-   - 10%: 3 iguales (jackpot $10.000). Dentro de ese 10%, ~30% es 🃏🃏🃏 (habilita re-tiro).
-   - 35%: 2 iguales (premio medio).
-   - 55%: todos distintos (premio base).
-*/
-function pickOutcome(){
-  const r = Math.random();
-  if(r < 0.10){
-    // triple
-    const tripleJoker = Math.random() < 0.30; // 30% de los triples es 🃏
-    const s = tripleJoker ? "🃏" : SYMBOLS[Math.floor(Math.random()*(SYMBOLS.length-1))]; // evita duplicar prob de 🃏
-    return [s,s,s];
-  }else if(r < 0.45){
-    // dos iguales
-    const s = SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
-    const t = SYMBOLS.filter(x=>x!==s)[Math.floor(Math.random()*(SYMBOLS.length-1))];
-    const pos = Math.floor(Math.random()*3);
-    const arr = [t,t,t]; arr[pos]=s; return arr;
-  }else{
-    // todos distintos
-    let a=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
-    let b=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
-    let c=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
-    while(a===b){ b=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]; }
-    while(c===a || c===b){ c=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]; }
-    return [a,b,c];
-  }
-}
-
-function choosePrize(outcome){
-  const [a,b,c]=outcome;
-  if(a===b && b===c){
-    if(a==="🃏") return {type:'respin'};  // triple JOKER → re-tiro (no premio aún)
-    return JACKPOT;                      // triple normal → $10.000
-  }
-  if(a===b || a===c || b===c) return MID_PRIZES[Math.floor(Math.random()*MID_PRIZES.length)];
-  return BASE_PRIZES[Math.floor(Math.random()*BASE_PRIZES.length)];
-}
-
 function whatsappText(prizeLabel){
   const code = localStorage.getItem('slot_code') || '(SIN-COD)';
   const ts   = localStorage.getItem('slot_ts')   || tsString();
   return `Hola, gané ${prizeLabel} en el Slot BET300 y quiero reclamarlo con mi próxima carga. Código: ${code} · ${ts}`;
 }
-
 function confettiBurst(){
   const el=document.getElementById('confetti'); el.innerHTML='';
   const n=28;
@@ -348,11 +424,11 @@ function restorePrizeIfAny(){
     const p=JSON.parse(saved);
     const code = localStorage.getItem('slot_code') || '—';
     const ts   = localStorage.getItem('slot_ts')   || tsString();
-    badge.textContent=label(p); title.textContent="🎉 ¡Premio obtenido!";
-    subtitle.innerHTML=subtitleHTML(p);
+    badge.textContent=money(p.value); title.textContent="🎉 ¡Premio obtenido!";
+    subtitle.innerHTML=`Recibís <b>${money(p.value)} extra</b> con tu próxima carga.`;
     stampEl.textContent=`Código: ${code} · ${ts}`;
     claimBtn.disabled=false; spinBtn.disabled=true;
-    const msg=whatsappText(label(p));
+    const msg=whatsappText(money(p.value));
     claimBtn.onclick=()=>location.href=`https://wa.me/${WP}?text=${encodeURIComponent(msg)}`;
   }
 }
@@ -371,31 +447,53 @@ function tickCountdown(){
   document.getElementById('countdown').textContent=h>0?`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
 
-/* Spin */
+/* ===== Probabilidades =====
+   10%: 3 iguales → $10.000
+   35%: 2 iguales → $2.000
+   55%: 0 coincidencias → $1.000
+*/
+function pickOutcome(){
+  const SYMBOLS = ["💎","7","🍒","🔔","⭐","BET300"];
+  const r = Math.random();
+  if(r < 0.10){
+    const s = SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
+    return [s,s,s];
+  }else if(r < 0.45){
+    const s = SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
+    const t = SYMBOLS.filter(x=>x!==s)[Math.floor(Math.random()*(SYMBOLS.length-1))];
+    const pos = Math.floor(Math.random()*3);
+    const arr = [t,t,t]; arr[pos]=s; return arr;
+  }else{
+    let a=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
+    let b=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
+    let c=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
+    while(a===b){ b=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]; }
+    while(c===a || c===b){ c=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]; }
+    return [a,b,c];
+  }
+}
+
+/* Spin (rápido + más vueltas) */
 document.addEventListener('click',()=>AudioKit.unlock(),{once:true});
 
-spinBtn.addEventListener('click', async ()=>{
+spinBtn.addEventListener('click', ()=>{
   if(spinning) return;
-
-  // si no hay extra spin, respetar “1 por día”
-  if(extraSpinsRemaining===0 && localStorage.getItem('slot_done')==='1'){
-    alert("Ya usaste tu giro de hoy");
-    return;
-  }
+  if(localStorage.getItem('slot_done')==='1'){ alert("Ya usaste tu giro de hoy"); return; }
 
   spinning=true; spinBtn.disabled=true; claimBtn.disabled=true;
   hintEl.textContent='—';
   if(soundOn) stopLoop = AudioKit.spinLoop();
 
   const outcome = pickOutcome();
-  const indexes = outcome.map(symbolIndex);
+  const SYMBOLS = ["💎","7","🍒","🔔","⭐","BET300"];
+  const idx = s => SYMBOLS.indexOf(s);
+  const indexes = outcome.map(idx);
 
-  // Más vueltas y más rápido
-  const baseTurns = [11,13,15];           // MÁS vueltas
+  const baseTurns = [11,13,15];
   const targetY = [0,0,0].map((_,i)=> baseTurns[i] + indexes[i] + Math.random()*0.15);
 
   const start = performance.now();
-  const dur = [1400,1700,2000];           // MENOR duración = más rápido
+  const dur = [1400,1700,2000];
 
   (function anim(t){
     let done=0;
@@ -415,39 +513,28 @@ async function onStop(outcome){
   const [a,b,c]=outcome;
   resultLine.textContent = `Rodillos: ${outcome.join(" | ")}`;
 
-  const prize = choosePrize(outcome);
-
-  if(prize.type==='respin'){
-    // 🃏🃏🃏 → Habilitar re-tiro gratis (no se fija slot_done)
-    extraSpinsRemaining = Math.min(EXTRA_SPIN_CAP, extraSpinsRemaining + 1);
-    title.textContent = "🃏 ¡Triple JOKER!";
-    subtitle.innerHTML = "Tenés <b>re-tiro gratis</b>. Volvé a girar.";
-    badge.textContent = "RE-TIRO";
-    stampEl.textContent = `Habilitado ${tsString(new Date())}`;
-    spinBtn.disabled=false;    // permitir re-tiro
-    claimBtn.disabled=true;    // no hay premio aún
-    spinning=false;
-    return;
+  // Activar halo si es triple BET300 (efecto 1.2s)
+  if(a==="BET300" && b==="BET300" && c==="BET300"){
+    haloActive = true;
+    haloUntil = Date.now() + 1200;
   }
 
-  // Hay premio (medio / base) o JACKPOT
-  const prizeLabel = label(prize);
+  // Premios fijos redondos
+  let prizeValue = 1000;
+  if(a===b && b===c) prizeValue = 10000;
+  else if(a===b || a===c || b===c) prizeValue = 2000;
+
+  const prizeLabel = money(prizeValue);
   const code = await makeClaimCode(prizeLabel);
   const ts   = tsString(new Date());
   localStorage.setItem('slot_code', code);
   localStorage.setItem('slot_ts', ts);
-  localStorage.setItem('slot_prize', JSON.stringify(prize));
-
-  // si este giro vino de re-tiro, NO consumimos adicional; si no, marcar usado
-  if(extraSpinsRemaining>0){
-    extraSpinsRemaining = 0;  // consumido
-  }else{
-    localStorage.setItem('slot_done', '1');
-  }
+  localStorage.setItem('slot_prize', JSON.stringify({type:'money', value:prizeValue}));
+  localStorage.setItem('slot_done','1');
 
   badge.textContent = prizeLabel;
-  title.textContent = (a===b && b===c) ? "🏆 ¡JACKPOT $10.000!" : "🎉 ¡Premio obtenido!";
-  subtitle.innerHTML= subtitleHTML(prize);
+  title.textContent = (prizeValue===10000) ? "🏆 ¡JACKPOT $10.000!" : "🎉 ¡Premio obtenido!";
+  subtitle.innerHTML= `Recibís <b>${prizeLabel} extra</b> con tu próxima carga.`;
   stampEl.textContent = `Código: ${code} · ${ts}`;
 
   const msg = whatsappText(prizeLabel);
@@ -456,6 +543,11 @@ async function onStop(outcome){
 
   if(soundOn) AudioKit.win();
   confettiBurst();
+
+  // Abrir modal automáticamente luego del halo (si activo) o al instante
+  const delay = haloActive ? Math.max(0, haloUntil - Date.now()) : 0;
+  setTimeout(()=> openModal(prizeLabel, code, ts), delay);
+
   spinning=false;
 }
 
