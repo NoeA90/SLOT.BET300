@@ -95,7 +95,7 @@ canvas{width:100%;height:140px;display:block;border-radius:10px;background:linea
     <div class="grid">
       <div class="panel">
         <h1>Slot Express · 3 rodillos</h1>
-        <p class="muted">Hacé girar y descubrí tu premio. Con <b>3 iguales</b> accedés al <span class="badgeWin">premio mayor</span>. Con <b>2 iguales</b>, premio medio. Si no, <b>premio garantizado</b>.</p>
+        <p class="muted">3 iguales = <span class="badgeWin">$10.000</span> (10% prob.). 🃏🃏🃏 habilita <b>re-tiro gratis</b>. Si no, <b>premio garantizado</b>.</p>
         <div class="stage">
           <div class="slotWrap slot">
             <div class="shadowTop"></div>
@@ -107,7 +107,7 @@ canvas{width:100%;height:140px;display:block;border-radius:10px;background:linea
               </div>
             </div>
             <div class="shadowBot"></div>
-            <div class="hint">Tip: mejor visual en vertical 📱</div>
+            <div class="hint" id="hint">Tip: mejor visual en vertical 📱</div>
           </div>
         </div>
       </div>
@@ -141,12 +141,11 @@ canvas{width:100%;height:140px;display:block;border-radius:10px;background:linea
 </div>
 
 <script>
-/* ===== Config general ===== */
+/* ===== Plataforma + WhatsApp por PC ===== */
 const PLATFORM_LINK = "https://alvg.bet300vip.com";
 document.getElementById('playNow').href = PLATFORM_LINK;
 
-/* WhatsApp por PC (Argentina +549) */
-const WP_NUMBERS = {
+const WP_NUMBERS = { // Argentina (+549)
   pc1: "5491131583516",
   pc2: "5491126695257",
   pc3: "5491125368306",
@@ -156,25 +155,21 @@ const params = new URLSearchParams(location.search);
 const pc = (params.get('pc')||"1").trim();
 const WP = WP_NUMBERS["pc"+(pc.match(/^[1-4]$/)?pc:"1")];
 
-/* Premio mayor / medio / base */
-const HIGH_PRIZES = [
-  {type:'money', value:5000},
-  {type:'money', value:4000},
-  {type:'percent', value:20},
-  {type:'percent', value:15}
-];
-const MID_PRIZES = [
-  {type:'money', value:3000},
-  {type:'percent', value:12}
-];
+/* ===== Premios ===== */
 const BASE_PRIZES = [
   {type:'money', value:2000},
   {type:'money', value:1000},
   {type:'percent', value:10}
 ];
+const MID_PRIZES = [
+  {type:'money', value:3000},
+  {type:'percent', value:12}
+];
+// 3 iguales = $10.000 fijo (máximo)
+const JACKPOT = {type:'money', value:10000};
 
-/* ===== Antifraude (device + código + timestamp) ===== */
-const SALT = "bet300-slot-v1";
+/* ===== Antifraude ===== */
+const SALT = "bet300-slot-v2";
 function ensureDeviceId(){
   let id = localStorage.getItem('device_id');
   if(!id){ id = (crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2,8)}`); localStorage.setItem('device_id', id); }
@@ -206,45 +201,23 @@ const AudioKit = (()=>{
   const Ctx = window.AudioContext || window.webkitAudioContext;
   const ctx = new Ctx(); let unlocked=false;
   function unlock(){ if(!unlocked){ ctx.resume().catch(()=>{}); unlocked=true; } }
-  function click(freq=880,dur=0.04,vol=0.06){
+  function click(freq=900,dur=0.035,vol=0.06){
     const o=ctx.createOscillator(), g=ctx.createGain(); o.type='square'; o.frequency.value=freq; g.gain.value=0; o.connect(g).connect(ctx.destination);
     const t=ctx.currentTime; g.gain.linearRampToValueAtTime(vol, t+0.005); g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
     o.start(t); o.stop(t+dur);
   }
-  function spinLoop(){ const id=setInterval(()=>click(760+Math.random()*160,0.03,0.05),100); return ()=>clearInterval(id); }
-  function win(){ [660,880,1320].forEach((f,i)=>setTimeout(()=>click(f,0.12,0.09), i*140)); }
+  function spinLoop(){ const id=setInterval(()=>click(820+Math.random()*220,0.028,0.05),80); return ()=>clearInterval(id); }
+  function win(){ [660,880,1320].forEach((f,i)=>setTimeout(()=>click(f,0.12,0.09), i*120)); }
   return {ctx,unlock,spinLoop,win};
 })();
 soundToggle.addEventListener('click',()=>{ soundOn=!soundOn; soundState.textContent=soundOn?'ON':'OFF';});
 
 /* ===== Reels (canvas) ===== */
-const SYMBOLS = ["💎","7","🍒","🔔","⭐"]; // sin imágenes
+const SYMBOLS = ["💎","7","🍒","🔔","⭐","🃏"]; // incluye JOKER
 const COLS = [document.getElementById('r1'),document.getElementById('r2'),document.getElementById('r3')].map(c=>c.getContext('2d'));
 const W = ()=>COLS[0].canvas.width, H = ()=>COLS[0].canvas.height;
 let reelY = [0,0,0], spinning=false;
 
-function drawReel(ctx, y){
-  const w=ctx.canvas.width, h=ctx.canvas.height;
-  ctx.clearRect(0,0,w,h);
-  const cell = h/3;
-  ctx.textAlign="center"; ctx.textBaseline="middle";
-  for(let i=-1;i<5;i++){
-    const sym = SYMBOLS[(i+Math.floor(y)) % SYMBOLS.length];
-    const yy = (i - (y%1))*cell + h/2;
-    // tarjeta
-    const r=10, pad=8;
-    ctx.fillStyle="#11183f"; ctx.strokeStyle="#2d356b"; ctx.lineWidth=2;
-    roundRect(ctx, pad, yy-cell/2+6, w-pad*2, cell-12, r, true, true);
-    // brillo
-    const grad=ctx.createLinearGradient(0,yy-cell/2,0,yy+cell/2);
-    grad.addColorStop(0,"rgba(124,77,255,.25)"); grad.addColorStop(1,"rgba(34,211,238,.25)");
-    roundRect(ctx, pad+2, yy-cell/2+8, w-(pad+2)*2, cell-16, r-2, true, false, grad);
-
-    ctx.font = `${Math.floor(cell*0.5)}px system-ui,Apple Color Emoji,Segoe UI Emoji`;
-    ctx.fillStyle = "#e9ecff";
-    ctx.fillText(sym, w/2, yy);
-  }
-}
 function roundRect(ctx,x,y,w,h,r,fill=true,stroke=true,fillStyle){
   let rr = Math.min(r, w/2, h/2);
   ctx.beginPath();
@@ -256,10 +229,29 @@ function roundRect(ctx,x,y,w,h,r,fill=true,stroke=true,fillStyle){
   if(fill){ ctx.fillStyle = fillStyle || ctx.fillStyle; ctx.fill(); }
   if(stroke){ ctx.stroke(); }
 }
+function drawReel(ctx, y){
+  const w=ctx.canvas.width, h=ctx.canvas.height;
+  ctx.clearRect(0,0,w,h);
+  const cell = h/3;
+  ctx.textAlign="center"; ctx.textBaseline="middle";
+  for(let i=-1;i<5;i++){
+    const sym = SYMBOLS[(i+Math.floor(y)) % SYMBOLS.length];
+    const yy = (i - (y%1))*cell + h/2;
+    const r=10, pad=8;
+    ctx.fillStyle="#11183f"; ctx.strokeStyle="#2d356b"; ctx.lineWidth=2;
+    roundRect(ctx, pad, yy-cell/2+6, w-pad*2, cell-12, r, true, true);
+    const grad=ctx.createLinearGradient(0,yy-cell/2,0,yy+cell/2);
+    grad.addColorStop(0,"rgba(124,77,255,.25)"); grad.addColorStop(1,"rgba(34,211,238,.25)");
+    roundRect(ctx, pad+2, yy-cell/2+8, w-(pad+2)*2, cell-16, r-2, true, false, grad);
+    ctx.font = `${Math.floor(cell*0.5)}px system-ui,Apple Color Emoji,Segoe UI Emoji`;
+    ctx.fillStyle = "#e9ecff";
+    ctx.fillText(sym, w/2, yy);
+  }
+}
 function renderAll(){ for(let i=0;i<3;i++) drawReel(COLS[i], reelY[i]); requestAnimationFrame(renderAll); }
 renderAll();
 
-/* ===== Juego ===== */
+/* ===== UI ===== */
 const spinBtn = document.getElementById('spinBtn');
 const claimBtn= document.getElementById('claimBtn');
 const badge   = document.getElementById('badge');
@@ -267,35 +259,11 @@ const title   = document.getElementById('title');
 const subtitle= document.getElementById('subtitle');
 const resultLine = document.getElementById('resultLine');
 const stampEl = document.getElementById('stampLine');
+const hintEl = document.getElementById('hint');
 
 let stopLoop=null;
-
-function pickOutcome(){
-  // Probabilidades simples: 3 iguales ~10%, 2 iguales ~35%, resto base.
-  const r = Math.random();
-  if(r<0.10){
-    const s = SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
-    return [s,s,s];
-  }else if(r<0.45){
-    const s = SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
-    const t = SYMBOLS.filter(x=>x!==s)[Math.floor(Math.random()*(SYMBOLS.length-1))];
-    const pos = Math.floor(Math.random()*3);
-    const arr = [t,t,t]; arr[pos]=s; return arr;
-  }else{
-    let a=SYMBOLS[0],b=SYMBOLS[1],c=SYMBOLS[2];
-    while(a===b) b = SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
-    while(c===a || c===b) c = SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
-    return [a,b,c];
-  }
-}
-
-function symbolIndex(sym){ return SYMBOLS.indexOf(sym); }
-
-function whatsappText(prizeLabel){
-  const code = localStorage.getItem('slot_code') || '(SIN-COD)';
-  const ts   = localStorage.getItem('slot_ts')   || tsString();
-  return `Hola, gané ${prizeLabel} en el Slot BET300 y quiero reclamarlo con mi próxima carga. Código: ${code} · ${ts}`;
-}
+let extraSpinsRemaining = 0;   // re-tiro por JOKER (máx 1)
+const EXTRA_SPIN_CAP = 1;
 
 function money(n){ return "$"+n.toLocaleString("es-AR"); }
 function label(p){ return p.type==='money' ? money(p.value) : `${p.value}%`; }
@@ -303,11 +271,51 @@ function subtitleHTML(p){ return p.type==='money'
   ? `Recibís <b>${money(p.value)} extra</b> con tu próxima carga.`
   : `Recibís un <b>${p.value}% extra</b> con tu próxima carga.`; }
 
+function symbolIndex(sym){ return SYMBOLS.indexOf(sym); }
+
+/* ===== Probabilidades =====
+   - 10%: 3 iguales (jackpot $10.000). Dentro de ese 10%, ~30% es 🃏🃏🃏 (habilita re-tiro).
+   - 35%: 2 iguales (premio medio).
+   - 55%: todos distintos (premio base).
+*/
+function pickOutcome(){
+  const r = Math.random();
+  if(r < 0.10){
+    // triple
+    const tripleJoker = Math.random() < 0.30; // 30% de los triples es 🃏
+    const s = tripleJoker ? "🃏" : SYMBOLS[Math.floor(Math.random()*(SYMBOLS.length-1))]; // evita duplicar prob de 🃏
+    return [s,s,s];
+  }else if(r < 0.45){
+    // dos iguales
+    const s = SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
+    const t = SYMBOLS.filter(x=>x!==s)[Math.floor(Math.random()*(SYMBOLS.length-1))];
+    const pos = Math.floor(Math.random()*3);
+    const arr = [t,t,t]; arr[pos]=s; return arr;
+  }else{
+    // todos distintos
+    let a=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
+    let b=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
+    let c=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
+    while(a===b){ b=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]; }
+    while(c===a || c===b){ c=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]; }
+    return [a,b,c];
+  }
+}
+
 function choosePrize(outcome){
   const [a,b,c]=outcome;
-  if(a===b && b===c) return HIGH_PRIZES[Math.floor(Math.random()*HIGH_PRIZES.length)];
+  if(a===b && b===c){
+    if(a==="🃏") return {type:'respin'};  // triple JOKER → re-tiro (no premio aún)
+    return JACKPOT;                      // triple normal → $10.000
+  }
   if(a===b || a===c || b===c) return MID_PRIZES[Math.floor(Math.random()*MID_PRIZES.length)];
   return BASE_PRIZES[Math.floor(Math.random()*BASE_PRIZES.length)];
+}
+
+function whatsappText(prizeLabel){
+  const code = localStorage.getItem('slot_code') || '(SIN-COD)';
+  const ts   = localStorage.getItem('slot_ts')   || tsString();
+  return `Hola, gané ${prizeLabel} en el Slot BET300 y quiero reclamarlo con mi próxima carga. Código: ${code} · ${ts}`;
 }
 
 function confettiBurst(){
@@ -352,7 +360,7 @@ function scheduleMidnightReset(){
   const now=new Date(); const midnight=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,0,0,5,0);
   setTimeout(()=>{localStorage.removeItem('slot_done');localStorage.removeItem('slot_prize');localStorage.removeItem('slot_code');localStorage.removeItem('slot_ts');localStorage.setItem('slot_date',todayKey());
     spinBtn.disabled=false; badge.textContent='-'; title.textContent='Tenés 1 giro disponible';
-    subtitle.innerHTML='Los premios se acreditan con tu <b>próxima carga mínima</b>.'; stampEl.textContent=''; resultLine.textContent='—';
+    subtitle.innerHTML='Los premios se acreditan con tu <b>próxima carga mínima</b>.'; stampEl.textContent=''; resultLine.textContent='—'; hintEl.textContent='Tip: mejor visual en vertical 📱';
   }, midnight.getTime()-now.getTime());
 }
 function endOfDay(){const n=new Date();const end=new Date(n.getFullYear(),n.getMonth(),n.getDate(),23,59,0,0).getTime();
@@ -368,20 +376,26 @@ document.addEventListener('click',()=>AudioKit.unlock(),{once:true});
 
 spinBtn.addEventListener('click', async ()=>{
   if(spinning) return;
-  if(localStorage.getItem('slot_done')==='1'){ alert("Ya usaste tu giro de hoy"); return; }
 
-  spinning=true; spinBtn.disabled=true;
+  // si no hay extra spin, respetar “1 por día”
+  if(extraSpinsRemaining===0 && localStorage.getItem('slot_done')==='1'){
+    alert("Ya usaste tu giro de hoy");
+    return;
+  }
+
+  spinning=true; spinBtn.disabled=true; claimBtn.disabled=true;
+  hintEl.textContent='—';
   if(soundOn) stopLoop = AudioKit.spinLoop();
 
-  const outcome = pickOutcome(); // símbolos finales
+  const outcome = pickOutcome();
   const indexes = outcome.map(symbolIndex);
 
-  // calculamos vueltas extra + offset para caer en el índice deseado
-  const base = [5,6,7]; // vueltas base
-  const targetY = [0,0,0].map((_,i)=> base[i] + indexes[i] + Math.random()*0.2);
+  // Más vueltas y más rápido
+  const baseTurns = [11,13,15];           // MÁS vueltas
+  const targetY = [0,0,0].map((_,i)=> baseTurns[i] + indexes[i] + Math.random()*0.15);
 
   const start = performance.now();
-  const dur = [1700,2200,2700]; // escalonado por reel
+  const dur = [1400,1700,2000];           // MENOR duración = más rápido
 
   (function anim(t){
     let done=0;
@@ -398,21 +412,43 @@ spinBtn.addEventListener('click', async ()=>{
 
 async function onStop(outcome){
   if(soundOn && stopLoop) { stopLoop(); stopLoop=null; }
-  const prize = choosePrize(outcome);
-  const prizeLabel = label(prize);
+  const [a,b,c]=outcome;
+  resultLine.textContent = `Rodillos: ${outcome.join(" | ")}`;
 
+  const prize = choosePrize(outcome);
+
+  if(prize.type==='respin'){
+    // 🃏🃏🃏 → Habilitar re-tiro gratis (no se fija slot_done)
+    extraSpinsRemaining = Math.min(EXTRA_SPIN_CAP, extraSpinsRemaining + 1);
+    title.textContent = "🃏 ¡Triple JOKER!";
+    subtitle.innerHTML = "Tenés <b>re-tiro gratis</b>. Volvé a girar.";
+    badge.textContent = "RE-TIRO";
+    stampEl.textContent = `Habilitado ${tsString(new Date())}`;
+    spinBtn.disabled=false;    // permitir re-tiro
+    claimBtn.disabled=true;    // no hay premio aún
+    spinning=false;
+    return;
+  }
+
+  // Hay premio (medio / base) o JACKPOT
+  const prizeLabel = label(prize);
   const code = await makeClaimCode(prizeLabel);
   const ts   = tsString(new Date());
   localStorage.setItem('slot_code', code);
   localStorage.setItem('slot_ts', ts);
   localStorage.setItem('slot_prize', JSON.stringify(prize));
-  localStorage.setItem('slot_done', '1');
+
+  // si este giro vino de re-tiro, NO consumimos adicional; si no, marcar usado
+  if(extraSpinsRemaining>0){
+    extraSpinsRemaining = 0;  // consumido
+  }else{
+    localStorage.setItem('slot_done', '1');
+  }
 
   badge.textContent = prizeLabel;
-  title.textContent = "🎉 ¡Premio obtenido!";
+  title.textContent = (a===b && b===c) ? "🏆 ¡JACKPOT $10.000!" : "🎉 ¡Premio obtenido!";
   subtitle.innerHTML= subtitleHTML(prize);
   stampEl.textContent = `Código: ${code} · ${ts}`;
-  resultLine.textContent = `Rodillos: ${outcome.join(" | ")}`;
 
   const msg = whatsappText(prizeLabel);
   claimBtn.disabled=false;
@@ -427,7 +463,6 @@ async function onStop(outcome){
 function init(){
   restoreDaily(); restorePrizeIfAny(); tickCountdown();
   setInterval(tickCountdown,1000); scheduleMidnightReset();
-  // dibujar algo inicial
   reelY=[0,0,0];
 }
 init();
