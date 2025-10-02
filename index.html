@@ -152,6 +152,7 @@ canvas.reelCanvas{width:100%;height:150px;display:block;border-radius:10px;backg
           Líneas: <b>arriba</b>, <b>centro</b>, <b>abajo</b>, <b>↘</b>, <b>↗</b>.
           3 logos <b>BET300</b> = <span class="badgeWin">$10.000</span> ·
           3 iguales = <b>$5.000</b> ·
+          <b>2 iguales = $2.000</b> ·
           sin acierto = <b>$1.000</b>.
         </p>
 
@@ -368,14 +369,13 @@ function drawSymbol(ctx, text, x, y, cell){
 }
 
 function drawReel(ctx, y){
-  const w=ctx.canvas.width, h=ctx.canvas.height; // h = 540 (3 celdas * 3)
+  const w=ctx.canvas.width, h=ctx.canvas.height;
   ctx.clearRect(0,0,w,h);
-  const cell = h/3;                   // una celda visible = 180px (antes de CSS)
+  const cell = h/3;
   const yoff = (y%1)*cell;
 
-  // grad de fondo sutil por franja
   for(let i=0;i<3;i++){
-    const top = i*cell - yoff + cell; // centrado
+    const top = i*cell - yoff + cell;
     const grad=ctx.createLinearGradient(0,top,0,top+cell);
     grad.addColorStop(0,"rgba(124,77,255,.18)");
     grad.addColorStop(1,"rgba(34,211,238,.18)");
@@ -386,7 +386,6 @@ function drawReel(ctx, y){
     ctx.strokeRect(pad, top+8, w-pad*2, cell-16);
   }
 
-  // 5 símbolos para cubrir el scroll
   for(let i=-1;i<=3;i++){
     const idx = clampMod(Math.floor(y)+i, SYMBOLS.length);
     const sym = SYMBOLS[idx];
@@ -394,7 +393,6 @@ function drawReel(ctx, y){
     drawSymbol(ctx, sym, w/2, yy, cell);
   }
 
-  // halo si corresponde
   if(haloActive){
     const t = Date.now()/10;
     const cx=w/2, cy=h/2, r1=(h/3)*0.62 + (Math.sin(t/180)+1)/2*10, r2=r1+16;
@@ -527,22 +525,17 @@ function tickCountdown(){
   document.getElementById('countdown').textContent=h>0?`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
 
-/* Probabilidades:
-   ~10%: 3 logos BET300  → $10.000
-   ~20%: 3 iguales (cualquier símbolo, NO BET300) → $5.000
-   resto: sin acierto → $1.000
-*/
+/* Probabilidades simples para demo */
 function pickCenters(){
   const s = ()=> SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
   const r = Math.random();
-  if(r < 0.10){ return ["BET300","BET300","BET300"]; }
-  else if(r < 0.30){
-    let x = s(); while(x==="BET300") x=s(); // evitar confundir con jackpot
+  if(r < 0.10){ return ["BET300","BET300","BET300"]; }            // 10% jackpot
+  else if(r < 0.30){                                              // 20% 3 iguales (no BET300)
+    let x = s(); while(x==="BET300") x=s();
     return [x,x,x];
   } else {
-    // forzar que NO haya triple (deja resultados variados)
+    // variado sin triple forzado (permitirá pares o nada)
     let a=s(), b=s(), c=s();
-    // asegurar que no sean los tres iguales:
     if(a===b && b===c){ c = (c==="BET300")?"💎":"BET300"; }
     return [a,b,c];
   }
@@ -559,7 +552,7 @@ function evaluateLines(grid){
     {name:"Diag ↘",    arr:[grid.r1.top,    grid.r2.center, grid.r3.bottom]},
     {name:"Diag ↗",    arr:[grid.r1.bottom, grid.r2.center, grid.r3.top]},
   ];
-  // triple primero (BET300 o cualquier otro)
+  // 1) triple (BET300 o cualquier otro)
   for(const L of lines){
     const [a,b,c]=L.arr;
     if(a===b && b===c){
@@ -567,6 +560,15 @@ function evaluateLines(grid){
       return {kind:"triple", prize:5000, line:L.name, symbol:a};
     }
   }
+  // 2) par (cualquier símbolo)
+  for(const L of lines){
+    const [a,b,c]=L.arr;
+    if(a===b || a===c || b===c){
+      const sym = (a===b)?a : (a===c)?a : b;
+      return {kind:"pair", prize:2000, line:L.name, symbol:sym};
+    }
+  }
+  // 3) sin acierto
   return {kind:"none", prize:1000, line:null, symbol:null};
 }
 
@@ -621,20 +623,29 @@ async function onStop(centers, grid, verdict){
   localStorage.setItem('slot_done','1');
 
   badge.textContent = prizeLabel;
-  title.textContent = (verdict.kind==="jackpot") ? "🏆 ¡JACKPOT $10.000!" :
-                      (verdict.kind==="triple")  ? "🎉 ¡3 iguales!" : "🎁 Premio garantizado";
+
+  /* ——— BLOQUE BASE (con 2 iguales) ——— */
+  title.textContent =
+    (verdict.kind==="jackpot") ? "🏆 ¡JACKPOT $10.000!" :
+    (verdict.kind==="triple")  ? "🎉 ¡3 iguales!" :
+    (verdict.kind==="pair")    ? "✨ ¡2 iguales!" :
+                                 "🎁 Premio garantizado";
+
+  const lineTxt = verdict.line ? ` · Línea: ${verdict.line}` : '';
+  const centersTxt = `Centro: ${centers.join(" | ")}`;
+  resultLine.textContent =
+    (verdict.kind==="jackpot") ? `3 logos BET300${lineTxt}. ${centersTxt}` :
+    (verdict.kind==="triple")  ? `3 iguales${lineTxt}. ${centersTxt}` :
+    (verdict.kind==="pair")    ? `2 iguales${lineTxt}. ${centersTxt}` :
+                                 `Sin acierto. ${centersTxt}`;
+  /* ——— fin bloque base ——— */
+
   subtitle.innerHTML= `Recibís <b>${prizeLabel} extra</b> con tu próxima carga.`;
   stampEl.textContent = `Código: ${code} · ${ts}`;
 
   const msg = whatsappText(prizeLabel);
   claimBtn.disabled=false;
   claimBtn.onclick=()=>location.href=`https://wa.me/${WP}?text=${encodeURIComponent(msg)}`;
-
-  const lineTxt = verdict.line ? ` · Línea: ${verdict.line}` : '';
-  const centersTxt = `Centro: ${centers.join(" | ")}`;
-  resultLine.textContent = (verdict.kind==="jackpot") ? `3 logos BET300${lineTxt}. ${centersTxt}` :
-                           (verdict.kind==="triple")  ? `3 iguales${lineTxt}. ${centersTxt}` :
-                                                        `Sin acierto. ${centersTxt}`;
 
   if(verdict.line) flashWin(verdict.line);
   if(soundOn) AudioKit.win();
