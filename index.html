@@ -402,14 +402,6 @@ function drawReel(ctx, y){
   }
 }
 
-function renderAll(){
-  for(let i=0;i<3;i++) drawReel(CTX[i], reelY[i]);
-  if(haloActive && Date.now()>haloUntil){ haloActive=false; }
-  renderWinFX();
-  requestAnimationFrame(renderAll);
-}
-renderAll();
-
 /* ===== Luces casino ===== */
 function placeBulbs(){
   const wrap = document.getElementById('slotBox');
@@ -522,9 +514,7 @@ function tickCountdown(){
   document.getElementById('countdown').textContent=h>0?`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
 
-/* ===== Probabilidades de símbolos en el centro de cada reel =====
-   (la evaluación final NO usa esto; sólo define qué termina dibujado)
-*/
+/* ===== Probabilidades de símbolos en el centro de cada reel (para la animación) */
 function pickCenters(){
   const s = ()=> SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
   const r = Math.random();
@@ -539,7 +529,7 @@ function pickCenters(){
   }
 }
 
-/* Visibles (arriba/centro/abajo) en función de reelY */
+/* Visibles (arriba/centro/abajo) según reelY */
 function visibleFor(colIndex){
   const y = reelY[colIndex];
   const base = Math.floor(y); // centro
@@ -549,9 +539,9 @@ function visibleFor(colIndex){
   return { top, center, bottom };
 }
 
-/* Evaluación de líneas: rectas (arriba/centro/abajo) y diagonales (↘, ↗)
-   Regla: hay premio si en la línea hay coincidencia de los 3 carriles
-   (indistinto derecha→izquierda o izquierda→derecha) */
+/* Evaluación de líneas (rectas y diagonales). 
+   Premio sólo si las coincidencias son reales en una línea.
+   Pares: únicamente si son ADYACENTES (1–2 o 2–3). */
 function evaluateLines(grid){
   const lines = [
     {name:"Arriba", arr:[grid.r1.top,    grid.r2.top,    grid.r3.top]},
@@ -561,7 +551,7 @@ function evaluateLines(grid){
     {name:"Diag ↗", arr:[grid.r1.bottom, grid.r2.center, grid.r3.top]},
   ];
 
-  // 1) Jackpot / triple (prioridad máxima)
+  // Triple (prioridad)
   for (const L of lines) {
     const [a,b,c] = L.arr;
     if (a===b && b===c) {
@@ -570,7 +560,7 @@ function evaluateLines(grid){
     }
   }
 
-  // 2) Pares SOLO si son ADYACENTES (1–2 o 2–3) y el tercero distinto.
+  // Par adyacente (1–2 o 2–3) con el tercero distinto
   for (const L of lines) {
     const [a,b,c] = L.arr;
     const leftPair  = (a===b && b!==c);
@@ -580,12 +570,21 @@ function evaluateLines(grid){
     }
   }
 
-  // 3) Sin acierto
   return {kind:"none", prize:1000, line:null};
 }
 
-/* ===== Spin ===== */
+/* ===== Animación ===== */
 document.addEventListener('click',()=>AudioKit.unlock(),{once:true});
+
+function startRenderLoop(){
+  function renderAll(){
+    for(let i=0;i<3;i++) drawReel(CTX[i], reelY[i]);
+    if(haloActive && Date.now()>haloUntil){ haloActive=false; }
+    renderWinFX();
+    requestAnimationFrame(renderAll);
+  }
+  requestAnimationFrame(renderAll);
+}
 
 spinBtn.addEventListener('click', ()=>{
   if(spinning) return;
@@ -595,7 +594,6 @@ spinBtn.addEventListener('click', ()=>{
   hintEl.textContent='—';
   let stopLoop=null; if(soundOn) stopLoop = AudioKit.spinLoop();
 
-  // elegimos qué símbolo quedará en el centro (para la animación)
   const centers = pickCenters();
   const idx = s => SYMBOLS.indexOf(s);
   const indexes = centers.map(idx);
@@ -680,6 +678,7 @@ function init(){
   restoreDaily(); restorePrizeIfAny(); tickCountdown();
   setInterval(tickCountdown,1000); scheduleMidnightReset();
   reelY=[0,0,0];
+  startRenderLoop(); // <— arranca el loop de dibujo cuando todo ya está dimensionado
 }
 init();
 </script>
