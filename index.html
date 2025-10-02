@@ -158,12 +158,9 @@ canvas.reelCanvas{width:100%;height:150px;display:block;border-radius:10px;backg
 
         <div class="stage">
           <div class="slotWrap slot" id="slotBox">
-            <!-- Luces casino -->
             <div class="bulbs" id="bulbs"></div>
-
             <div class="shadowTop"></div>
             <div class="reelFrame" id="reelFrame">
-              <!-- FX highlight -->
               <div class="fx"><canvas id="fx"></canvas></div>
 
               <div class="reels">
@@ -201,7 +198,6 @@ canvas.reelCanvas{width:100%;height:150px;display:block;border-radius:10px;backg
   </div>
 </div>
 
-<!-- Dock -->
 <div class="dock">
   <button id="spinBtn" class="btn">🎯 Girar</button>
   <button id="claimBtn" class="btn ok" disabled>📲 Reclamar</button>
@@ -336,7 +332,7 @@ function renderWinFX(){
   fxCtx.restore();
 }
 
-/* Dibujo básico */
+/* Helpers */
 function clampMod(n,m){ return ((n % m) + m) % m; }
 
 function drawSealBET300(ctx, x, y, cell){
@@ -428,7 +424,7 @@ function placeBulbs(){
   const perSide = 12;
   for(let i=0;i<=perSide;i++){ addBulb(i*(w/perSide), -4, i); }
   for(let i=0;i<=perSide;i++){ addBulb(i*(w/perSide), h+4, i+100); }
-  for(let i=0;i<=perSide;i++){ addBulb(-4, i*(h/perSide), i+200); }
+  for(let i=0;i<=perSide)i++){ addBulb(-4, i*(h/perSide), i+200); }
   for(let i=0;i<=perSide;i++){ addBulb(w+4, i*(h/perSide), i+300); }
 }
 
@@ -462,8 +458,6 @@ function openModal(prizeLabel, code, ts){
 function closeModal(){ prizeModal.classList.remove('show'); }
 mClose.onclick = closeModal; closeModalX.onclick = closeModal;
 prizeModal.addEventListener('click',e=>{ if(e.target===prizeModal) closeModal(); });
-
-let stopLoop=null;
 
 /* Utils */
 function money(n){ return "$"+n.toLocaleString("es-AR"); }
@@ -525,11 +519,7 @@ function tickCountdown(){
   document.getElementById('countdown').textContent=h>0?`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
 
-/* Probabilidades:
-   ~10%: 3 logos BET300  → $10.000
-   ~20%: 3 iguales (cualquier símbolo, NO BET300) → $5.000
-   resto: variable (puede dar 2 iguales o sin acierto) → $2.000 o $1.000
-*/
+/* Probabilidades (idénticas) */
 function pickCenters(){
   const s = ()=> SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
   const r = Math.random();
@@ -548,7 +538,7 @@ function neighbors(symbol){
   return {top: SYMBOLS[(i-1+SYMBOLS.length)%SYMBOLS.length], center: symbol, bottom: SYMBOLS[(i+1)%SYMBOLS.length]};
 }
 
-/* ===== Bloque de evaluación (incluye 2 iguales) ===== */
+/* Evaluación de líneas (incluye 2 iguales) */
 function evaluateLines(grid){
   const lines = [
     {name:"Arriba",    arr:[grid.r1.top,    grid.r2.top,    grid.r3.top]},
@@ -560,29 +550,17 @@ function evaluateLines(grid){
 
   for(const L of lines){
     const [a,b,c]=L.arr;
-
-    // Jackpot (3 BET300)
-    if(a===b && b===c && a==="BET300"){
-      return {kind:"jackpot", prize:10000, line:L.name, symbol:a};
-    }
-
-    // Triple normal (3 iguales, distinto de BET300)
-    if(a===b && b===c){
-      return {kind:"triple", prize:5000, line:L.name, symbol:a};
-    }
-
-    // Doble (2 iguales exactos en la línea)
+    if(a===b && b===c && a==="BET300") return {kind:"jackpot", prize:10000, line:L.name, symbol:a};
+    if(a===b && b===c)                 return {kind:"triple",  prize:5000,  line:L.name, symbol:a};
     if(a===b || b===c || a===c){
       const sym = (a===b)?a : (b===c)?b : a;
-      return {kind:"pair", prize:2000, line:L.name, symbol:sym};
+      return {kind:"pair",   prize:2000,  line:L.name, symbol:sym};
     }
   }
-
-  // Sin acierto
   return {kind:"none", prize:1000, line:null, symbol:null};
 }
 
-/* Spin */
+/* ===== Spin con “snap” a entero ===== */
 document.addEventListener('click',()=>AudioKit.unlock(),{once:true});
 
 spinBtn.addEventListener('click', ()=>{
@@ -597,11 +575,12 @@ spinBtn.addEventListener('click', ()=>{
   const g = { r1: neighbors(centers[0]), r2: neighbors(centers[1]), r3: neighbors(centers[2]) };
   const verdict = evaluateLines(g);
 
-  const idx = s => SYMBOLS.indexOf(s);
-  const indexes = centers.map(idx);
+  const idxOf = s => SYMBOLS.indexOf(s);
+  const indexes = centers.map(idxOf);
 
-  const baseTurns = [11,13,15];
-  const targetY = indexes.map((ix,i)=> baseTurns[i] + ix + Math.random()*0.12);
+  // OBJETIVO: pasos enteros (sin decimales) para alinear EXACTO
+  const baseTurns = [12,14,16]; // velocidad/escalonado
+  const targetSteps = indexes.map((ix,i)=> baseTurns[i] + ix); // ENTEROS
 
   const start = performance.now();
   const dur = [1300,1600,1900];
@@ -611,8 +590,8 @@ spinBtn.addEventListener('click', ()=>{
     for(let i=0;i<3;i++){
       const k = Math.min(1,(t-start)/dur[i]);
       const ease = 1-Math.pow(1-k,3);
-      reelY[i] = ease*targetY[i];
-      if(k>=1) done++;
+      reelY[i] = ease*targetSteps[i];        // interpolación
+      if(k>=1){ reelY[i]=targetSteps[i]; done++; } // SNAP FINAL A ENTERO
     }
     if(done<3){ requestAnimationFrame(anim); }
     else { if(soundOn && stopLoop){ stopLoop(); } onStop(centers, g, verdict); }
