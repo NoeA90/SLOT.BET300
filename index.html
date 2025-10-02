@@ -1,13 +1,660 @@
-title.textContent =
-  (verdict.kind==="jackpot") ? "🏆 ¡JACKPOT $10.000!" :
-  (verdict.kind==="triple")  ? "🎉 ¡3 iguales!" :
-  (verdict.kind==="pair")    ? "✨ ¡2 iguales!" :
-                               "🎁 Premio garantizado";
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>BET300 · Slot Express</title>
+<meta name="theme-color" content="#0a0f1f"/>
+<style>
+:root{
+  --bg:#0a0f1f; --panel:#0f132b; --panel2:#0b1026; --border:#1a2250;
+  --text:#e9ecff; --muted:#aab0d6; --ok:#25D366; --accent:#7c4dff; --cyan:#22d3ee; --gold:#ffd166;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.35 system-ui,-apple-system,Segoe UI,Roboto}
+body::before{content:"";position:fixed;inset:0;z-index:-2;background:
+  radial-gradient(900px 500px at 70% -10%, rgba(124,77,255,.25), transparent),
+  radial-gradient(700px 350px at 0% 0%, rgba(0,209,255,.18), transparent),
+  linear-gradient(180deg,#0a0f1f 0%,#0a0f1f 60%,#080c1a 100%);
+}
+.container{max-width:980px;margin:6px auto 86px;padding:0 10px}
+.card{background:
+  radial-gradient(120% 100% at 50% 0%, rgba(124,77,255,.09), transparent),
+  var(--panel2);
+  border:1px solid var(--border);border-radius:18px;padding:10px;box-shadow:0 15px 40px rgba(0,0,0,.35)}
+@media(min-width:900px){.grid{display:grid;grid-template-columns:1.05fr .95fr;gap:10px}}
+@media(max-width:520px){.card{border-radius:0;border-left:0;border-right:0}}
 
-const lineTxt = verdict.line ? ` · Línea: ${verdict.line}` : '';
-const centersTxt = `Centro: ${centers.join(" | ")}`;
-resultLine.textContent =
-  (verdict.kind==="jackpot") ? `3 logos BET300${lineTxt}. ${centersTxt}` :
-  (verdict.kind==="triple")  ? `3 iguales${lineTxt}. ${centersTxt}` :
-  (verdict.kind==="pair")    ? `2 iguales${lineTxt}. ${centersTxt}` :
-                               `Sin acierto. ${centersTxt}`;
+.head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.brand{font-weight:900;letter-spacing:.5px;font-size:22px}
+.pill{background:linear-gradient(90deg,rgba(124,77,255,.13),rgba(0,209,255,.13));border:1px solid var(--border);
+  border-radius:999px;padding:6px 8px;font-size:12px;color:var(--muted)}
+.pill.time{display:flex;gap:6px;align-items:center}
+.pill.sound{cursor:pointer;user-select:none}
+.count{display:inline-flex;gap:6px;align-items:center;padding:3px 8px;border-radius:999px;background:rgba(255,204,0,.15);
+  border:1px solid rgba(255,204,0,.35);color:#ffe27a;font-weight:700;font-variant-numeric:tabular-nums}
+h1,h2,h3,p{margin:0 0 6px}
+h1{font-size:20px}
+.muted{color:var(--muted)}
+.rightTop{margin-left:auto;display:flex;gap:8px;align-items:center}
+.btnLink{display:inline-flex;gap:8px;align-items:center;padding:8px 10px;border-radius:12px;font-weight:800;
+  background:linear-gradient(90deg,#7c59ff,#00d1ff);color:#0a0f1f;text-decoration:none;border:1px solid rgba(255,255,255,.06)}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:10px}
+.center{text-align:center}
+.stat{display:flex;gap:10px;align-items:center;justify-content:center;margin:6px 0 8px}
+.badge{min-width:66px;height:40px;border-radius:10px;background:radial-gradient(100% 100% at 50% 0%, rgba(0,209,255,.35), rgba(124,77,255,.35));
+  display:grid;place-items:center;font-weight:800;font-size:16px;box-shadow:inset 0 0 10px rgba(124,77,255,.35)}
+.smallline{font-size:12px;color:var(--muted)}
+.stage{display:flex;justify-content:center}
+.slotWrap{width:100%;max-width:520px;margin:4px auto 0;position:relative}
+.slot{position:relative;border-radius:16px;padding:10px;background:
+  linear-gradient(180deg,rgba(124,77,255,.18),rgba(34,211,238,.18));
+  border:1px solid var(--border);box-shadow:inset 0 0 0 1px rgba(255,255,255,.03), 0 10px 30px rgba(0,0,0,.35)}
+.reelFrame{position:relative;border-radius:14px;padding:8px;background:rgba(10,15,35,.65);
+  border:1px solid #2a2f58}
+.reels{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.reel{background:#0c1230;border-radius:10px;padding:6px;border:1px solid #30376a}
+canvas.reelCanvas{width:100%;height:150px;display:block;border-radius:10px;background:linear-gradient(180deg,#0d1438,#0a102c)}
+@media(min-width:420px){canvas.reelCanvas{height:160px}}
+@media(min-width:540px){canvas.reelCanvas{height:180px}}
+.shadowTop,.shadowBot{position:absolute;left:0;right:0;height:24px;pointer-events:none}
+.shadowTop{top:0;background:linear-gradient(180deg,rgba(10,15,35,.75),transparent)}
+.shadowBot{bottom:0;background:linear-gradient(0deg,rgba(10,15,35,.75),transparent)}
+.hint{text-align:center;color:var(--muted);font-size:12px;margin-top:4px}
+
+/* Luces casino alrededor del marco */
+.bulbs{position:absolute;inset:-6px;pointer-events:none}
+.bulbs i{position:absolute;width:8px;height:8px;border-radius:50%;box-shadow:0 0 10px rgba(255,255,255,.6)}
+@keyframes bulbOn{0%{opacity:.4;transform:scale(.9)}50%{opacity:1;transform:scale(1)}100%{opacity:.4;transform:scale(.9)}}
+
+/* FX para resaltar línea */
+.fx{position:absolute;inset:8px;pointer-events:none}
+.fx canvas{position:absolute;inset:0;display:block}
+
+/* Dock inferior */
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:20;background:linear-gradient(180deg, rgba(11,15,30,0) 0%, rgba(11,15,30,.85) 22%, rgba(11,15,30,.95) 100%);
+  padding:8px 10px 10px;display:flex;gap:8px}
+.btn{appearance:none;border:none;cursor:pointer;padding:12px 14px;border-radius:14px;font-weight:800;background:linear-gradient(90deg,#ff9a3d,#ff5c39);color:#0b0f1e;width:100%;
+  box-shadow:0 8px 20px rgba(0,0,0,.35)}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+.btn.ok{background:#25D366;color:#0b0f1e}
+.badgeWin{display:inline-block;padding:4px 8px;border-radius:10px;background:rgba(255,209,102,.15);color:var(--gold);border:1px solid rgba(255,209,102,.35);font-weight:800}
+
+/* Confetti */
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:40}
+.confetti i{position:absolute;top:-20px;width:10px;height:14px;border-radius:2px;opacity:0;animation:confFall 1.6s linear forwards}
+@keyframes confFall{8%{opacity:1}100%{transform:translateY(110vh) rotate(360deg);opacity:0}}
+
+/* Modal premio */
+.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(4,6,14,.6);backdrop-filter:blur(4px);z-index:60}
+.modal.show{display:flex}
+.modalCard{width:min(520px,92vw);background:var(--panel2);border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:0 20px 50px rgba(0,0,0,.45)}
+.modalHead{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.modalHead h3{margin:0;font-size:18px}
+.modalBody{display:grid;gap:8px}
+.row{display:flex;gap:8px;align-items:center;justify-content:space-between;border:1px dashed var(--border);border-radius:12px;padding:10px}
+.k{color:var(--muted);font-size:13px}
+.v{font-weight:800}
+.actions{display:flex;gap:8px;margin-top:8px}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+.closeX{margin-left:auto;cursor:pointer;opacity:.8}
+.closeX:hover{opacity:1}
+
+/* Compacto móvil */
+@media(max-width:420px){
+  h1{font-size:18px}
+  .panel{padding:8px}
+  .stat{gap:8px}
+  .badge{min-width:60px;height:36px;font-size:15px}
+  .btn{padding:11px 12px}
+}
+</style>
+</head>
+<body>
+<div id="confetti" class="confetti" aria-hidden="true"></div>
+
+<!-- MODAL PREMIO -->
+<div id="prizeModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modalCard">
+    <div class="modalHead">
+      <h3 id="modalTitle">🎁 Premio obtenido</h3>
+      <span id="closeModal" class="closeX">✖</span>
+    </div>
+    <div class="modalBody">
+      <div class="row"><span class="k">Premio</span><span class="v" id="mPrize">—</span></div>
+      <div class="row"><span class="k">Código</span><span class="v" id="mCode">—</span></div>
+      <div class="row"><span class="k">Fecha/Hora</span><span class="v" id="mTs">—</span></div>
+      <div class="actions">
+        <button id="mClaim" class="btn ok">📲 Reclamar por WhatsApp</button>
+        <button id="mClose" class="btn ghost">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="card">
+    <div class="head">
+      <div class="brand">BET300</div>
+      <span class="pill">Promo interactiva</span>
+      <span class="pill time">⚡ Tiempo limitado <span class="count" id="countdown">--:--</span></span>
+      <span class="pill sound" id="soundToggle">🔊 Sonido: <b id="soundState">ON</b></span>
+      <div class="rightTop">
+        <a id="playNow" class="btnLink" target="_blank" rel="noopener"><span>🎮 Entrar a la plataforma</span></a>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <h1>Slot Express · 3 rodillos</h1>
+        <p class="muted">
+          Líneas: <b>arriba</b>, <b>centro</b>, <b>abajo</b>, <b>↘</b>, <b>↗</b>.
+          3 logos <b>BET300</b> = <span class="badgeWin">$10.000</span> ·
+          3 iguales = <b>$5.000</b> ·
+          sin acierto = <b>$1.000</b>.
+        </p>
+
+        <div class="stage">
+          <div class="slotWrap slot" id="slotBox">
+            <!-- Luces casino -->
+            <div class="bulbs" id="bulbs"></div>
+
+            <div class="shadowTop"></div>
+            <div class="reelFrame" id="reelFrame">
+              <!-- FX highlight -->
+              <div class="fx"><canvas id="fx"></canvas></div>
+
+              <div class="reels">
+                <div class="reel"><canvas id="r1" class="reelCanvas" width="240" height="540"></canvas></div>
+                <div class="reel"><canvas id="r2" class="reelCanvas" width="240" height="540"></canvas></div>
+                <div class="reel"><canvas id="r3" class="reelCanvas" width="240" height="540"></canvas></div>
+              </div>
+            </div>
+            <div class="shadowBot"></div>
+            <div class="hint" id="hint">Tip: mejor visual en vertical 📱</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="center">
+          <div class="stat">
+            <div>
+              <div class="badge" id="badge">-</div>
+              <div class="smallline" id="stampLine" aria-live="polite"></div>
+            </div>
+            <div>
+              <h2 id="title">Tenés 1 giro disponible</h2>
+              <p class="muted" id="subtitle">Los premios se acreditan con tu <b>próxima carga mínima</b>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top:6px">
+          <p style="margin-bottom:6px"><b>Resultado actual</b></p>
+          <p id="resultLine" class="muted">—</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Dock -->
+<div class="dock">
+  <button id="spinBtn" class="btn">🎯 Girar</button>
+  <button id="claimBtn" class="btn ok" disabled>📲 Reclamar</button>
+</div>
+
+<script>
+/* ===== Plataforma + WhatsApp por PC ===== */
+const PLATFORM_LINK = "https://alvg.bet300vip.com";
+document.getElementById('playNow').href = PLATFORM_LINK;
+
+const WP_NUMBERS = {
+  pc1: "5491131583516",
+  pc2: "5491126695257",
+  pc3: "5491125368306",
+  pc4: "5491150030414"
+};
+const params = new URLSearchParams(location.search);
+const pc = (params.get('pc')||"1").trim();
+const WP = WP_NUMBERS["pc"+(pc.match(/^[1-4]$/)?pc:"1")];
+
+/* ===== Antifraude ===== */
+const SALT = "bet300-slot-v7";
+function ensureDeviceId(){
+  let id = localStorage.getItem('device_id');
+  if(!id){ id = (crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2,8)}`); localStorage.setItem('device_id', id); }
+  return id;
+}
+const DEVICE_ID = ensureDeviceId();
+function todayKey(){const n=new Date();return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`}
+function tsString(d=new Date()){
+  const dd=String(d.getDate()).padStart(2,'0'),mm=String(d.getMonth()+1).padStart(2,'0'),yyyy=d.getFullYear();
+  const hh=String(d.getHours()).padStart(2,'0'),mi=String(d.getMinutes()).padStart(2,'0');
+  return `${dd}/${mm}/${yyyy} ${hh}:${mi}`;
+}
+async function sha256hex(msg){
+  const enc = new TextEncoder().encode(msg);
+  const buf = await crypto.subtle.digest("SHA-256", enc);
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+async function makeClaimCode(prizeLabel){
+  const base = `${DEVICE_ID}|${todayKey()}|${prizeLabel}|pc:${pc}|${SALT}`;
+  const hex = await sha256hex(base);
+  return hex.slice(0,10).toUpperCase();
+}
+
+/* ===== Sonido ===== */
+let soundOn = true;
+const soundToggle = document.getElementById('soundToggle');
+const soundState  = document.getElementById('soundState');
+const AudioKit = (()=>{
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  const ctx = new Ctx(); let unlocked=false;
+  function unlock(){ if(!unlocked){ ctx.resume().catch(()=>{}); unlocked=true; } }
+  function click(freq=900,dur=0.035,vol=0.06){
+    const o=ctx.createOscillator(), g=ctx.createGain(); o.type='square'; o.frequency.value=freq; g.gain.value=0; o.connect(g).connect(ctx.destination);
+    const t=ctx.currentTime; g.gain.linearRampToValueAtTime(vol, t+0.005); g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
+    o.start(t); o.stop(t+dur);
+  }
+  function spinLoop(){ const id=setInterval(()=>click(820+Math.random()*220,0.028,0.05),80); return ()=>clearInterval(id); }
+  function win(){ [660,880,1320].forEach((f,i)=>setTimeout(()=>click(f,0.12,0.09), i*120)); }
+  return {ctx,unlock,spinLoop,win};
+})();
+soundToggle.addEventListener('click',()=>{ soundOn=!soundOn; soundState.textContent=soundOn?'ON':'OFF';});
+
+/* ===== Reels (canvas) ===== */
+const SYMBOLS = ["💎","7","🍒","🔔","⭐","BET300"]; // BET300 → sello
+const COLS = [document.getElementById('r1'),document.getElementById('r2'),document.getElementById('r3')];
+const CTX = COLS.map(c=>c.getContext('2d'));
+let reelY = [0,0,0], spinning=false;
+
+/* Halo para triple BET300 */
+let haloActive=false, haloUntil=0;
+
+/* FX línea ganadora */
+const fxCanvas = document.getElementById('fx');
+const reelFrameEl = document.getElementById('reelFrame');
+let fxCtx, fxW=0, fxH=0, winFX=null;
+
+function sizeFx(){
+  const dpr = window.devicePixelRatio||1;
+  const rect = reelFrameEl.getBoundingClientRect();
+  fxW = Math.floor(rect.width*dpr);
+  fxH = Math.floor(rect.height*dpr);
+  fxCanvas.width = fxW; fxCanvas.height = fxH;
+  fxCanvas.style.width = rect.width+'px';
+  fxCanvas.style.height = rect.height+'px';
+  fxCtx = fxCanvas.getContext('2d');
+}
+window.addEventListener('resize', ()=>{ clearTimeout(window.__fxTo); window.__fxTo=setTimeout(()=>{ sizeFx(); placeBulbs(); }, 120); });
+
+function flashWin(lineName){ winFX = { line: lineName, until: Date.now()+1100 }; }
+function renderWinFX(){
+  if(!fxCtx){ return; }
+  fxCtx.clearRect(0,0,fxW,fxH);
+  if(!winFX || Date.now()>winFX.until) return;
+
+  const dpr = window.devicePixelRatio||1;
+  const c1 = COLS[0].getBoundingClientRect();
+  const c2 = COLS[1].getBoundingClientRect();
+  const c3 = COLS[2].getBoundingClientRect();
+  const fr = reelFrameEl.getBoundingClientRect();
+  const X = x => (x - fr.left)*dpr, Y = y => (y - fr.top)*dpr;
+
+  const ch = c1.height;
+  const midY=c1.top+ch/2, cell=ch/3, topY=midY-cell, centerY=midY, bottomY=midY+cell;
+  const leftX=c1.left, rightX=c3.right;
+
+  fxCtx.save();
+  fxCtx.lineWidth=6*dpr;
+  fxCtx.strokeStyle="rgba(124,77,255,.65)";
+  fxCtx.fillStyle="rgba(34,211,238,.22)";
+
+  function band(y){
+    const pad=6*dpr, h=cell*0.84*dpr, y0=Y(y-(h/dpr)/2), x0=X(leftX)+pad, x1=X(rightX)-pad, r=12*dpr;
+    fxCtx.beginPath();
+    fxCtx.moveTo(x0+r,y0);
+    fxCtx.arcTo(x1,y0,x1,y0+h,r);
+    fxCtx.arcTo(x1,y0+h,x0,y0+h,r);
+    fxCtx.arcTo(x0,y0+h,x0,y0,r);
+    fxCtx.arcTo(x0,y0,x1,y0,r);
+    fxCtx.closePath(); fxCtx.fill(); fxCtx.stroke();
+  }
+  function diag(x0,y0,x1,y1){ fxCtx.beginPath(); fxCtx.moveTo(X(x0)+8*dpr,Y(y0)); fxCtx.lineTo(X(x1)-8*dpr,Y(y1)); fxCtx.stroke(); }
+
+  switch(winFX.line){
+    case "Arriba": band(topY); break;
+    case "Centro": band(centerY); break;
+    case "Abajo":  band(bottomY); break;
+    case "Diag ↘": diag(leftX,topY,rightX,bottomY); break;
+    case "Diag ↗": diag(leftX,bottomY,rightX,topY); break;
+  }
+  fxCtx.restore();
+}
+
+/* Dibujo básico */
+function clampMod(n,m){ return ((n % m) + m) % m; }
+
+function drawSealBET300(ctx, x, y, cell){
+  const r = cell*0.38;
+  const ringGrad = ctx.createRadialGradient(x,y,r*0.4, x,y,r);
+  ringGrad.addColorStop(0,"rgba(255,255,255,.28)");
+  ringGrad.addColorStop(1,"rgba(255,255,255,.06)");
+  ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+  ctx.fillStyle = "rgba(10,15,35,.9)"; ctx.fill();
+  ctx.lineWidth = Math.max(2,r*0.12); ctx.strokeStyle = ringGrad; ctx.stroke();
+
+  const g = ctx.createLinearGradient(x,y-r,x,y+r);
+  g.addColorStop(0,"#7c59ff"); g.addColorStop(1,"#22d3ee");
+  ctx.beginPath(); ctx.arc(x,y,r*0.82,0,Math.PI*2); ctx.fillStyle = g; ctx.fill();
+
+  ctx.save(); ctx.fillStyle = "#0a0f1f"; ctx.textAlign="center"; ctx.textBaseline="middle";
+  ctx.font = `800 ${Math.floor(cell*0.22)}px system-ui,Segoe UI,Roboto`; ctx.fillText("BET", x, y - r*0.22);
+  ctx.font = `900 ${Math.floor(cell*0.30)}px system-ui,Segoe UI,Roboto`; ctx.fillText("300", x, y + r*0.18);
+  ctx.restore();
+}
+
+function drawSymbol(ctx, text, x, y, cell){
+  if(text==="BET300"){ drawSealBET300(ctx, x, y, cell); }
+  else{
+    ctx.save(); ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillStyle="#e9ecff";
+    ctx.font = `${Math.floor(cell*0.5)}px system-ui,Apple Color Emoji,Segoe UI Emoji`;
+    ctx.fillText(text, x, y); ctx.restore();
+  }
+}
+
+function drawReel(ctx, y){
+  const w=ctx.canvas.width, h=ctx.canvas.height; // h = 540 (3 celdas * 3)
+  ctx.clearRect(0,0,w,h);
+  const cell = h/3;                   // una celda visible = 180px (antes de CSS)
+  const yoff = (y%1)*cell;
+
+  // grad de fondo sutil por franja
+  for(let i=0;i<3;i++){
+    const top = i*cell - yoff + cell; // centrado
+    const grad=ctx.createLinearGradient(0,top,0,top+cell);
+    grad.addColorStop(0,"rgba(124,77,255,.18)");
+    grad.addColorStop(1,"rgba(34,211,238,.18)");
+    ctx.fillStyle=grad;
+    const pad=8;
+    ctx.fillRect(pad, top+8, w-pad*2, cell-16);
+    ctx.strokeStyle="rgba(255,255,255,.06)"; ctx.lineWidth=2;
+    ctx.strokeRect(pad, top+8, w-pad*2, cell-16);
+  }
+
+  // 5 símbolos para cubrir el scroll
+  for(let i=-1;i<=3;i++){
+    const idx = clampMod(Math.floor(y)+i, SYMBOLS.length);
+    const sym = SYMBOLS[idx];
+    const yy = (i*cell - yoff) + h/2;
+    drawSymbol(ctx, sym, w/2, yy, cell);
+  }
+
+  // halo si corresponde
+  if(haloActive){
+    const t = Date.now()/10;
+    const cx=w/2, cy=h/2, r1=(h/3)*0.62 + (Math.sin(t/180)+1)/2*10, r2=r1+16;
+    const grad = ctx.createRadialGradient(cx,cy,r1*0.2, cx,cy,r2);
+    grad.addColorStop(0,"rgba(124,77,255,.28)");
+    grad.addColorStop(1,"rgba(34,211,238,.06)");
+    ctx.beginPath(); ctx.arc(cx,cy,r2,0,Math.PI*2); ctx.fillStyle=grad; ctx.fill();
+  }
+}
+
+function renderAll(){
+  for(let i=0;i<3;i++) drawReel(CTX[i], reelY[i]);
+  if(haloActive && Date.now()>haloUntil){ haloActive=false; }
+  renderWinFX();
+  requestAnimationFrame(renderAll);
+}
+renderAll();
+
+/* ===== Luces casino ===== */
+function placeBulbs(){
+  const wrap = document.getElementById('slotBox');
+  const frame = document.getElementById('reelFrame');
+  const bulbs = document.getElementById('bulbs');
+  bulbs.innerHTML='';
+  const w = wrap.clientWidth, h = frame.clientHeight + 20;
+  function addBulb(x,y,i){
+    const b=document.createElement('i');
+    b.style.left=x+'px'; b.style.top=y+'px';
+    b.style.background = (i%3===0)?'#ffd166': (i%3===1)?'#7c59ff':'#22d3ee';
+    b.style.animation = `bulbOn ${900+((i%5)*120)}ms infinite`;
+    bulbs.appendChild(b);
+  }
+  const perSide = 12;
+  for(let i=0;i<=perSide;i++){ addBulb(i*(w/perSide), -4, i); }
+  for(let i=0;i<=perSide;i++){ addBulb(i*(w/perSide), h+4, i+100); }
+  for(let i=0;i<=perSide;i++){ addBulb(-4, i*(h/perSide), i+200); }
+  for(let i=0;i<=perSide;i++){ addBulb(w+4, i*(h/perSide), i+300); }
+}
+
+/* ===== UI ===== */
+const spinBtn = document.getElementById('spinBtn');
+const claimBtn= document.getElementById('claimBtn');
+const badge   = document.getElementById('badge');
+const title   = document.getElementById('title');
+const subtitle= document.getElementById('subtitle');
+const resultLine = document.getElementById('resultLine');
+const stampEl = document.getElementById('stampLine');
+const hintEl = document.getElementById('hint');
+
+/* Modal */
+const prizeModal = document.getElementById('prizeModal');
+const mPrize = document.getElementById('mPrize');
+const mCode  = document.getElementById('mCode');
+const mTs    = document.getElementById('mTs');
+const mClaim = document.getElementById('mClaim');
+const mClose = document.getElementById('mClose');
+const closeModalX = document.getElementById('closeModal');
+
+function openModal(prizeLabel, code, ts){
+  mPrize.textContent = prizeLabel;
+  mCode.textContent  = code;
+  mTs.textContent    = ts;
+  const msg = whatsappText(prizeLabel);
+  mClaim.onclick = ()=>location.href=`https://wa.me/${WP}?text=${encodeURIComponent(msg)}`;
+  prizeModal.classList.add('show');
+}
+function closeModal(){ prizeModal.classList.remove('show'); }
+mClose.onclick = closeModal; closeModalX.onclick = closeModal;
+prizeModal.addEventListener('click',e=>{ if(e.target===prizeModal) closeModal(); });
+
+let stopLoop=null;
+
+/* Utils */
+function money(n){ return "$"+n.toLocaleString("es-AR"); }
+function whatsappText(prizeLabel){
+  const code = localStorage.getItem('slot_code') || '(SIN-COD)';
+  const ts   = localStorage.getItem('slot_ts')   || tsString();
+  return `Hola, gané ${prizeLabel} en el Slot BET300 y quiero reclamarlo con mi próxima carga. Código: ${code} · ${ts}`;
+}
+function confettiBurst(){
+  const el=document.getElementById('confetti'); el.innerHTML='';
+  const n=28;
+  for(let i=0;i<n;i++){
+    const p=document.createElement('i');
+    p.style.left=(Math.random()*100)+'vw';
+    p.style.animationDelay=(Math.random()*0.5)+'s';
+    p.style.background = Math.random()<.5?'linear-gradient(#80ffea,#4e9cff)':'linear-gradient(#ffd166,#ff3d7f)';
+    el.appendChild(p);
+  }
+  setTimeout(()=>{el.innerHTML='';},1800);
+}
+
+/* Persistencia diaria */
+function restoreDaily(){
+  const today=todayKey(); const stored=localStorage.getItem('slot_date');
+  if(stored && stored!==today){
+    localStorage.removeItem('slot_done');
+    localStorage.removeItem('slot_prize');
+    localStorage.removeItem('slot_code');
+    localStorage.removeItem('slot_ts');
+    localStorage.setItem('slot_date',today);
+  }else if(!stored){ localStorage.setItem('slot_date',today); }
+}
+function restorePrizeIfAny(){
+  const done=localStorage.getItem('slot_done')==='1'; const saved=localStorage.getItem('slot_prize');
+  if(done && saved){
+    const p=JSON.parse(saved);
+    const code = localStorage.getItem('slot_code') || '—';
+    const ts   = localStorage.getItem('slot_ts')   || tsString();
+    badge.textContent=money(p.value); title.textContent="🎉 ¡Premio obtenido!";
+    subtitle.innerHTML=`Recibís <b>${money(p.value)} extra</b> con tu próxima carga.`;
+    stampEl.textContent=`Código: ${code} · ${ts}`;
+    claimBtn.disabled=false; spinBtn.disabled=true;
+    const msg=whatsappText(money(p.value));
+    claimBtn.onclick=()=>location.href=`https://wa.me/${WP}?text=${encodeURIComponent(msg)}`;
+  }
+}
+function scheduleMidnightReset(){
+  const now=new Date(); const midnight=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,0,0,5,0);
+  setTimeout(()=>{localStorage.removeItem('slot_done');localStorage.removeItem('slot_prize');localStorage.removeItem('slot_code');localStorage.removeItem('slot_ts');localStorage.setItem('slot_date',todayKey());
+    spinBtn.disabled=false; badge.textContent='-'; title.textContent='Tenés 1 giro disponible';
+    subtitle.innerHTML='Los premios se acreditan con tu <b>próxima carga mínima</b>.'; stampEl.textContent=''; resultLine.textContent='—'; hintEl.textContent='Tip: mejor visual en vertical 📱';
+  }, midnight.getTime()-now.getTime());
+}
+function endOfDay(){const n=new Date();const end=new Date(n.getFullYear(),n.getMonth(),n.getDate(),23,59,0,0).getTime();
+  return end>Date.now()?end:new Date(n.getFullYear(),n.getMonth(),n.getDate()+1,23,59,0,0).getTime()}
+function tickCountdown(){
+  const ms=endOfDay()-Date.now(); const total=Math.max(0,Math.floor(ms/1000));
+  const h=Math.floor(total/3600), m=Math.floor((total%3600)/60), s=total%60;
+  document.getElementById('countdown').textContent=h>0?`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+/* Probabilidades:
+   ~10%: 3 logos BET300  → $10.000
+   ~20%: 3 iguales (cualquier símbolo, NO BET300) → $5.000
+   resto: sin acierto → $1.000
+*/
+function pickCenters(){
+  const s = ()=> SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
+  const r = Math.random();
+  if(r < 0.10){ return ["BET300","BET300","BET300"]; }
+  else if(r < 0.30){
+    let x = s(); while(x==="BET300") x=s(); // evitar confundir con jackpot
+    return [x,x,x];
+  } else {
+    // forzar que NO haya triple (deja resultados variados)
+    let a=s(), b=s(), c=s();
+    // asegurar que no sean los tres iguales:
+    if(a===b && b===c){ c = (c==="BET300")?"💎":"BET300"; }
+    return [a,b,c];
+  }
+}
+function neighbors(symbol){
+  const i = SYMBOLS.indexOf(symbol);
+  return {top: SYMBOLS[(i-1+SYMBOLS.length)%SYMBOLS.length], center: symbol, bottom: SYMBOLS[(i+1)%SYMBOLS.length]};
+}
+function evaluateLines(grid){
+  const lines = [
+    {name:"Arriba",    arr:[grid.r1.top,    grid.r2.top,    grid.r3.top]},
+    {name:"Centro",    arr:[grid.r1.center, grid.r2.center, grid.r3.center]},
+    {name:"Abajo",     arr:[grid.r1.bottom, grid.r2.bottom, grid.r3.bottom]},
+    {name:"Diag ↘",    arr:[grid.r1.top,    grid.r2.center, grid.r3.bottom]},
+    {name:"Diag ↗",    arr:[grid.r1.bottom, grid.r2.center, grid.r3.top]},
+  ];
+  // triple primero (BET300 o cualquier otro)
+  for(const L of lines){
+    const [a,b,c]=L.arr;
+    if(a===b && b===c){
+      if(a==="BET300") return {kind:"jackpot", prize:10000, line:L.name, symbol:a};
+      return {kind:"triple", prize:5000, line:L.name, symbol:a};
+    }
+  }
+  return {kind:"none", prize:1000, line:null, symbol:null};
+}
+
+/* Spin */
+document.addEventListener('click',()=>AudioKit.unlock(),{once:true});
+
+spinBtn.addEventListener('click', ()=>{
+  if(spinning) return;
+  if(localStorage.getItem('slot_done')==='1'){ alert("Ya usaste tu giro de hoy"); return; }
+
+  spinning=true; spinBtn.disabled=true; claimBtn.disabled=true;
+  hintEl.textContent='—';
+  let stopLoop=null; if(soundOn) stopLoop = AudioKit.spinLoop();
+
+  const centers = pickCenters();
+  const g = { r1: neighbors(centers[0]), r2: neighbors(centers[1]), r3: neighbors(centers[2]) };
+  const verdict = evaluateLines(g);
+
+  const idx = s => SYMBOLS.indexOf(s);
+  const indexes = centers.map(idx);
+
+  const baseTurns = [11,13,15];
+  const targetY = indexes.map((ix,i)=> baseTurns[i] + ix + Math.random()*0.12);
+
+  const start = performance.now();
+  const dur = [1300,1600,1900];
+
+  (function anim(t){
+    let done=0;
+    for(let i=0;i<3;i++){
+      const k = Math.min(1,(t-start)/dur[i]);
+      const ease = 1-Math.pow(1-k,3);
+      reelY[i] = ease*targetY[i];
+      if(k>=1) done++;
+    }
+    if(done<3){ requestAnimationFrame(anim); }
+    else { if(soundOn && stopLoop){ stopLoop(); } onStop(centers, g, verdict); }
+  })(start);
+});
+
+async function onStop(centers, grid, verdict){
+  if(verdict.kind==="jackpot"){ haloActive = true; haloUntil = Date.now()+1200; }
+
+  const prizeValue = verdict.prize;
+  const prizeLabel = money(prizeValue);
+  const code = await makeClaimCode(prizeLabel);
+  const ts   = tsString(new Date());
+
+  localStorage.setItem('slot_code', code);
+  localStorage.setItem('slot_ts', ts);
+  localStorage.setItem('slot_prize', JSON.stringify({type:'money', value:prizeValue}));
+  localStorage.setItem('slot_done','1');
+
+  badge.textContent = prizeLabel;
+  title.textContent = (verdict.kind==="jackpot") ? "🏆 ¡JACKPOT $10.000!" :
+                      (verdict.kind==="triple")  ? "🎉 ¡3 iguales!" : "🎁 Premio garantizado";
+  subtitle.innerHTML= `Recibís <b>${prizeLabel} extra</b> con tu próxima carga.`;
+  stampEl.textContent = `Código: ${code} · ${ts}`;
+
+  const msg = whatsappText(prizeLabel);
+  claimBtn.disabled=false;
+  claimBtn.onclick=()=>location.href=`https://wa.me/${WP}?text=${encodeURIComponent(msg)}`;
+
+  const lineTxt = verdict.line ? ` · Línea: ${verdict.line}` : '';
+  const centersTxt = `Centro: ${centers.join(" | ")}`;
+  resultLine.textContent = (verdict.kind==="jackpot") ? `3 logos BET300${lineTxt}. ${centersTxt}` :
+                           (verdict.kind==="triple")  ? `3 iguales${lineTxt}. ${centersTxt}` :
+                                                        `Sin acierto. ${centersTxt}`;
+
+  if(verdict.line) flashWin(verdict.line);
+  if(soundOn) AudioKit.win();
+  confettiBurst();
+
+  const delay = haloActive ? Math.max(0, haloUntil - Date.now()) : 0;
+  setTimeout(()=> openModal(prizeLabel, code, ts), delay);
+
+  spinning=false;
+}
+
+/* Init */
+function placeAndSize(){ sizeFx(); placeBulbs(); }
+function init(){
+  placeAndSize();
+  restoreDaily(); restorePrizeIfAny(); tickCountdown();
+  setInterval(tickCountdown,1000); scheduleMidnightReset();
+  reelY=[0,0,0];
+}
+init();
+</script>
+</body>
+</html>
