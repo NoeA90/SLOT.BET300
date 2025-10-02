@@ -561,6 +561,29 @@ function evaluateLines(grid){
     {name:"Diag ↗", arr:[grid.r1.bottom, grid.r2.center, grid.r3.top]},
   ];
 
+  // 1) Jackpot / triple (prioridad máxima)
+  for (const L of lines) {
+    const [a,b,c] = L.arr;
+    if (a===b && b===c) {
+      if (a==="BET300") return {kind:"jackpot", prize:10000, line:L.name, symbol:a};
+      return {kind:"triple", prize:5000, line:L.name, symbol:a};
+    }
+  }
+
+  // 2) Pares SOLO si son ADYACENTES (1–2 o 2–3) y el tercero distinto.
+  for (const L of lines) {
+    const [a,b,c] = L.arr;
+    const leftPair  = (a===b && b!==c);
+    const rightPair = (b===c && a!==b);
+    if (leftPair || rightPair) {
+      return {kind:"pair", prize:2000, line:L.name};
+    }
+  }
+
+  // 3) Sin acierto
+  return {kind:"none", prize:1000, line:null};
+}
+
   // 1) Jackpot o triple (prioridad mayor)
   for(const L of lines){
     const [a,b,c]=L.arr;
