@@ -539,39 +539,43 @@ function visibleFor(colIndex){
   return { top, center, bottom };
 }
 
-/* Evaluación de líneas (rectas y diagonales). 
-   Premio sólo si las coincidencias son reales en una línea.
-   Pares: únicamente si son ADYACENTES (1–2 o 2–3). */
+/* Evaluación de líneas SOLO derecha → izquierda
+   - Triples: 3 iguales (incluye BET300 para jackpot)
+   - Pares:   SOLO si son adyacentes en los rodillos de la derecha (R3=R2)
+*/
 function evaluateLines(grid){
+  // Definimos cada línea en orden IZQ→DER (r1, r2, r3) para dibujar/nombrar,
+  // pero al evaluar pares miramos SOLO el par derecho (b==c).
   const lines = [
     {name:"Arriba", arr:[grid.r1.top,    grid.r2.top,    grid.r3.top]},
     {name:"Centro", arr:[grid.r1.center, grid.r2.center, grid.r3.center]},
     {name:"Abajo",  arr:[grid.r1.bottom, grid.r2.bottom, grid.r3.bottom]},
-    {name:"Diag ↘", arr:[grid.r1.top,    grid.r2.center, grid.r3.bottom]},
+    {name:"Diag ↘", arr:[grid.r1.top,    grid.r2.center, grid.r3.bottom]}, // de der→izq es ↖, pero mantenemos el nombre visual
     {name:"Diag ↗", arr:[grid.r1.bottom, grid.r2.center, grid.r3.top]},
   ];
 
-  // Triple (prioridad)
+  // 1) JACKPOT / TRIPLE (prioridad máxima)
   for (const L of lines) {
-    const [a,b,c] = L.arr;
+    const [a,b,c] = L.arr;      // a=r1, b=r2, c=r3
     if (a===b && b===c) {
       if (a==="BET300") return {kind:"jackpot", prize:10000, line:L.name, symbol:a};
       return {kind:"triple", prize:5000, line:L.name, symbol:a};
     }
   }
 
-  // Par adyacente (1–2 o 2–3) con el tercero distinto
+  // 2) PAR ADYACENTE SOLO EN LA DERECHA (r3 == r2) y distinto de r1
   for (const L of lines) {
-    const [a,b,c] = L.arr;
-    const leftPair  = (a===b && b!==c);
+    const [a,b,c] = L.arr;      // a=r1, b=r2, c=r3
     const rightPair = (b===c && a!==b);
-    if (leftPair || rightPair) {
+    if (rightPair) {
       return {kind:"pair", prize:2000, line:L.name};
     }
   }
 
+  // 3) Sin acierto
   return {kind:"none", prize:1000, line:null};
 }
+
 
 /* ===== Animación ===== */
 document.addEventListener('click',()=>AudioKit.unlock(),{once:true});
