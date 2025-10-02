@@ -66,7 +66,7 @@ canvas.reelCanvas{width:100%;height:150px;display:block;border-radius:10px;backg
 /* Luces casino alrededor del marco */
 .bulbs{position:absolute;inset:-6px;pointer-events:none}
 .bulbs i{position:absolute;width:8px;height:8px;border-radius:50%;box-shadow:0 0 10px rgba(255,255,255,.6)}
-@keyframes bulbOn{0%{opacity:.4;transform:scale(.9)}50%{opacity:1;transform:scale(1)}100%{opacity:.4;transform:scale(.9)}
+@keyframes bulbOn{0%{opacity:.4;transform:scale(.9)}50%{opacity:1;transform:scale(1)}100%{opacity:.4;transform:scale(.9)}}
 
 /* FX para resaltar línea */
 .fx{position:absolute;inset:8px;pointer-events:none}
@@ -147,8 +147,8 @@ canvas.reelCanvas{width:100%;height:150px;display:block;border-radius:10px;backg
 
     <div class="grid">
       <div class="panel">
-        <h1>Slot Express · 3 rodillos</h1>
-
+        <h1>Slot Express · </h1>
+    
         <div class="stage">
           <div class="slotWrap slot" id="slotBox">
             <!-- Luces casino -->
@@ -203,41 +203,36 @@ canvas.reelCanvas{width:100%;height:150px;display:block;border-radius:10px;backg
 <script>
 /* ===== Plataforma + WhatsApp (3 PCs: ?pc=1|2|3) ===== */
 const PLATFORM_LINKS = {
-  pc1: "https://c01.bet300vip.com/",
-  pc2: "https://c02.bet300vip.com/",
-  pc3: "https://c3.bet300vip.com/"
+  pc1: "https://c01.bet300vip.com/",  // ← poné tu URL real
+  pc2: "https://c02.bet300vip.com/",  // ← poné tu URL real
+  pc3: "https://c3.bet300vip.com/"   // ← poné tu URL real
 };
 
 const WP_NUMBERS = {
-  pc1: "5491171328828",
-  pc2: "5491151622581",
-  pc3: "5491154040255"
+  pc1: "5491171328828",  // ← número para pc=1
+  pc2: "5491151622581",  // ← número para pc=2
+  pc3: "5491154040255"   // ← número para pc=3
 };
 
-const params  = new URLSearchParams(location.search);
+const params = new URLSearchParams(location.search);
 const pcParam = (params.get("pc") || "1").trim();
-const pcKey   = "pc" + (pcParam.match(/^[1-3]$/) ? pcParam : "1");
+const pcKey = "pc" + (pcParam.match(/^[1-3]$/) ? pcParam : "1");
 
-// Botón "Entrar a la plataforma"
+// link del botón "Entrar a la plataforma"
 document.getElementById("playNow").href = PLATFORM_LINKS[pcKey];
-// WhatsApp a usar en “Reclamar”
+
+// número de WhatsApp a usar en Reclamar
 const WP = WP_NUMBERS[pcKey];
 
 /* ===== Antifraude ===== */
 const SALT = "bet300-slot-v7";
 function ensureDeviceId(){
   let id = localStorage.getItem('device_id');
-  if(!id){
-    id = (crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2,8)}`);
-    localStorage.setItem('device_id', id);
-  }
+  if(!id){ id = (crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2,8)}`); localStorage.setItem('device_id', id); }
   return id;
 }
 const DEVICE_ID = ensureDeviceId();
-function todayKey(){
-  const n=new Date();
-  return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
-}
+function todayKey(){const n=new Date();return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`}
 function tsString(d=new Date()){
   const dd=String(d.getDate()).padStart(2,'0'),mm=String(d.getMonth()+1).padStart(2,'0'),yyyy=d.getFullYear();
   const hh=String(d.getHours()).padStart(2,'0'),mi=String(d.getMinutes()).padStart(2,'0');
@@ -249,8 +244,7 @@ async function sha256hex(msg){
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
 }
 async function makeClaimCode(prizeLabel){
-  // ← FIX: usar pcKey (no 'pc')
-  const base = `${DEVICE_ID}|${todayKey()}|${prizeLabel}|pc:${pcKey}|${SALT}`;
+  const base = `${DEVICE_ID}|${todayKey()}|${prizeLabel}|pc:${pc}|${SALT}`;
   const hex = await sha256hex(base);
   return hex.slice(0,10).toUpperCase();
 }
@@ -275,7 +269,7 @@ const AudioKit = (()=>{
 soundToggle.addEventListener('click',()=>{ soundOn=!soundOn; soundState.textContent=soundOn?'ON':'OFF';});
 
 /* ===== Reels (canvas) ===== */
-const SYMBOLS = ["💎","7","🍒","🔔","⭐","BET300"];
+const SYMBOLS = ["💎","7","🍒","🔔","⭐","BET300"]; // BET300 → sello
 const COLS = [document.getElementById('r1'),document.getElementById('r2'),document.getElementById('r3')];
 const CTX = COLS.map(c=>c.getContext('2d'));
 let reelY = [0,0,0], spinning=false;
@@ -427,9 +421,9 @@ function placeBulbs(){
   }
   const perSide = 12;
   for(let i=0;i<=perSide;i++){ addBulb(i*(w/perSide), -4, i); }
-  for(let i=0;i<=perSide;i'){ addBulb(i*(w/perSide), h+4, i+100); }
-  for(let i=0;i<=perSide;i'){ addBulb(-4, i*(h/perSide), i+200); }
-  for(let i=0;i<=perSide;i'){ addBulb(w+4, i*(h/perSide), i+300); }
+  for(let i=0;i<=perSide;i++){ addBulb(i*(w/perSide), h+4, i+100); }
+  for(let i=0;i<=perSide;i++){ addBulb(-4, i*(h/perSide), i+200); }
+  for(let i=0;i<=perSide;i++){ addBulb(w+4, i*(h/perSide), i+300); }
 }
 
 /* ===== UI ===== */
@@ -523,7 +517,7 @@ function tickCountdown(){
   document.getElementById('countdown').textContent=h>0?`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
 
-/* ===== Probabilidades (sólo para la animación del centro) */
+/* ===== Probabilidades de símbolos en el centro de cada reel (para la animación) */
 function pickCenters(){
   const s = ()=> SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
   const r = Math.random();
@@ -548,7 +542,12 @@ function visibleFor(colIndex){
   return { top, center, bottom };
 }
 
-/* Evaluación de líneas */
+/* Evaluación de líneas: rectas (arriba/centro/abajo) y diagonales (↘, ↗)
+   Reglas:
+   - JACKPOT: 3 BET300 en la línea
+   - TRIPLE : 3 iguales (no BET300) en la línea
+   - PAR    : dos iguales ADYACENTES (r3==r2 o r2==r1) y el tercero distinto
+*/
 function evaluateLines(grid){
   const lines = [
     {name:"Arriba", r:[grid.r1.top,    grid.r2.top,    grid.r3.top]},
@@ -558,7 +557,7 @@ function evaluateLines(grid){
     {name:"Diag ↗", r:[grid.r1.bottom, grid.r2.center, grid.r3.top]},
   ];
 
-  // 1) JACKPOT / TRIPLE
+  // 1) JACKPOT / TRIPLE (prioridad máxima)
   for (const L of lines){
     const [r1, r2, r3] = L.r;
     if (r1 === r2 && r2 === r3){
@@ -567,11 +566,11 @@ function evaluateLines(grid){
     }
   }
 
-  // 2) PAR ADYACENTE (r3==r2 o r2==r1), tercero distinto
+  // 2) PAR ADYACENTE en cualquiera de los lados (r3==r2 ó r2==r1) y el tercero distinto
   for (const L of lines){
     const [r1, r2, r3] = L.r;
-    const rightPair = (r3 === r2 && r1 !== r2);
-    const leftPair  = (r2 === r1 && r3 !== r2);
+    const rightPair = (r3 === r2 && r1 !== r2); // derecha→centro
+    const leftPair  = (r2 === r1 && r3 !== r2); // centro→izquierda
     if (rightPair || leftPair){
       return {kind:"pair", prize:2000, line:L.name};
     }
@@ -580,6 +579,8 @@ function evaluateLines(grid){
   // 3) Sin acierto
   return {kind:"none", prize:1000, line:null};
 }
+
+
 
 /* ===== Animación ===== */
 document.addEventListener('click',()=>AudioKit.unlock(),{once:true});
@@ -686,7 +687,7 @@ function init(){
   restoreDaily(); restorePrizeIfAny(); tickCountdown();
   setInterval(tickCountdown,1000); scheduleMidnightReset();
   reelY=[0,0,0];
-  startRenderLoop();
+  startRenderLoop(); // <— arranca el loop de dibujo cuando todo ya está dimensionado
 }
 init();
 </script>
