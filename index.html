@@ -147,14 +147,8 @@ canvas.reelCanvas{width:100%;height:150px;display:block;border-radius:10px;backg
 
     <div class="grid">
       <div class="panel">
-        <h1>Slot Express · 3 rodillos</h1>
-        <p class="muted">
-          Líneas: <b>arriba</b>, <b>centro</b>, <b>abajo</b>, <b>↘</b>, <b>↗</b>.
-          3 logos <b>BET300</b> = <span class="badgeWin">$10.000</span> ·
-          3 iguales = <b>$5.000</b> · 2 iguales = <b>$2.000</b> ·
-          sin acierto = <b>$1.000</b>.
-        </p>
-
+        <h1>Slot Express · </h1>
+    
         <div class="stage">
           <div class="slotWrap slot" id="slotBox">
             <!-- Luces casino -->
@@ -539,39 +533,45 @@ function visibleFor(colIndex){
   return { top, center, bottom };
 }
 
-/* Evaluación de líneas (rectas y diagonales). 
-   Premio sólo si las coincidencias son reales en una línea.
-   Pares: únicamente si son ADYACENTES (1–2 o 2–3). */
+/* Evaluación de líneas: rectas (arriba/centro/abajo) y diagonales (↘, ↗)
+   Reglas:
+   - JACKPOT: 3 BET300 en la línea
+   - TRIPLE : 3 iguales (no BET300) en la línea
+   - PAR    : dos iguales ADYACENTES (r3==r2 o r2==r1) y el tercero distinto
+*/
 function evaluateLines(grid){
   const lines = [
-    {name:"Arriba", arr:[grid.r1.top,    grid.r2.top,    grid.r3.top]},
-    {name:"Centro", arr:[grid.r1.center, grid.r2.center, grid.r3.center]},
-    {name:"Abajo",  arr:[grid.r1.bottom, grid.r2.bottom, grid.r3.bottom]},
-    {name:"Diag ↘", arr:[grid.r1.top,    grid.r2.center, grid.r3.bottom]},
-    {name:"Diag ↗", arr:[grid.r1.bottom, grid.r2.center, grid.r3.top]},
+    {name:"Arriba", r:[grid.r1.top,    grid.r2.top,    grid.r3.top]},
+    {name:"Centro", r:[grid.r1.center, grid.r2.center, grid.r3.center]},
+    {name:"Abajo",  r:[grid.r1.bottom, grid.r2.bottom, grid.r3.bottom]},
+    {name:"Diag ↘", r:[grid.r1.top,    grid.r2.center, grid.r3.bottom]},
+    {name:"Diag ↗", r:[grid.r1.bottom, grid.r2.center, grid.r3.top]},
   ];
 
-  // Triple (prioridad)
-  for (const L of lines) {
-    const [a,b,c] = L.arr;
-    if (a===b && b===c) {
-      if (a==="BET300") return {kind:"jackpot", prize:10000, line:L.name, symbol:a};
-      return {kind:"triple", prize:5000, line:L.name, symbol:a};
+  // 1) JACKPOT / TRIPLE (prioridad máxima)
+  for (const L of lines){
+    const [r1, r2, r3] = L.r;
+    if (r1 === r2 && r2 === r3){
+      if (r1 === "BET300") return {kind:"jackpot", prize:10000, line:L.name, symbol:r1};
+      return {kind:"triple", prize:5000, line:L.name, symbol:r1};
     }
   }
 
-  // Par adyacente (1–2 o 2–3) con el tercero distinto
-  for (const L of lines) {
-    const [a,b,c] = L.arr;
-    const leftPair  = (a===b && b!==c);
-    const rightPair = (b===c && a!==b);
-    if (leftPair || rightPair) {
+  // 2) PAR ADYACENTE en cualquiera de los lados (r3==r2 ó r2==r1) y el tercero distinto
+  for (const L of lines){
+    const [r1, r2, r3] = L.r;
+    const rightPair = (r3 === r2 && r1 !== r2); // derecha→centro
+    const leftPair  = (r2 === r1 && r3 !== r2); // centro→izquierda
+    if (rightPair || leftPair){
       return {kind:"pair", prize:2000, line:L.name};
     }
   }
 
+  // 3) Sin acierto
   return {kind:"none", prize:1000, line:null};
 }
+
+
 
 /* ===== Animación ===== */
 document.addEventListener('click',()=>AudioKit.unlock(),{once:true});
