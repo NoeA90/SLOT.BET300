@@ -539,40 +539,52 @@ function visibleFor(colIndex){
   return { top, center, bottom };
 }
 
-/* Evaluación de líneas SOLO derecha → izquierda
-   - Triples: 3 iguales (incluye BET300 para jackpot)
-   - Pares:   SOLO si son adyacentes en los rodillos de la derecha (R3=R2)
-*/
+// Evalúa líneas con regla clásica: la coincidencia debe ser de DERECHA→IZQUIERDA
+// - Triple: r3 == r2 == r1
+// - Par válido: r3 == r2 y r1 distinto
+// Prioridades: JACKPOT (triple BET300) > TRIPLE > PAR > SIN ACIERTO
 function evaluateLines(grid){
-  // Definimos cada línea en orden IZQ→DER (r1, r2, r3) para dibujar/nombrar,
-  // pero al evaluar pares miramos SOLO el par derecho (b==c).
   const lines = [
-    {name:"Arriba", arr:[grid.r1.top,    grid.r2.top,    grid.r3.top]},
-    {name:"Centro", arr:[grid.r1.center, grid.r2.center, grid.r3.center]},
-    {name:"Abajo",  arr:[grid.r1.bottom, grid.r2.bottom, grid.r3.bottom]},
-    {name:"Diag ↘", arr:[grid.r1.top,    grid.r2.center, grid.r3.bottom]}, // de der→izq es ↖, pero mantenemos el nombre visual
-    {name:"Diag ↗", arr:[grid.r1.bottom, grid.r2.center, grid.r3.top]},
+    {name:"Arriba",   r:[grid.r1.top,    grid.r2.top,    grid.r3.top]},
+    {name:"Centro",   r:[grid.r1.center, grid.r2.center, grid.r3.center]},
+    {name:"Abajo",    r:[grid.r1.bottom, grid.r2.bottom, grid.r3.bottom]},
+    {name:"Diag ↘",   r:[grid.r1.top,    grid.r2.center, grid.r3.bottom]},
+    {name:"Diag ↗",   r:[grid.r1.bottom, grid.r2.center, grid.r3.top]},
   ];
 
-  // 1) JACKPOT / TRIPLE (prioridad máxima)
-  for (const L of lines) {
-    const [a,b,c] = L.arr;      // a=r1, b=r2, c=r3
-    if (a===b && b===c) {
-      if (a==="BET300") return {kind:"jackpot", prize:10000, line:L.name, symbol:a};
-      return {kind:"triple", prize:5000, line:L.name, symbol:a};
+  // Clasifica una línea con la regla R→L
+  const classify = (l) => {
+    const [r1, r2, r3] = l;            // r1 = izquierda, r2 = medio, r3 = derecha (se paga mirando R→L)
+    if (r3 === r2 && r2 === r1) return {hit:"triple", symbol:r3};
+    if (r3 === r2 && r1 !== r2) return {hit:"pair",   symbol:r3};
+    return {hit:"none"};
+  };
+
+  // 1) JACKPOT: cualquier línea con triple BET300
+  for (const L of lines){
+    const c = classify(L.r);
+    if (c.hit === "triple" && c.symbol === "BET300"){
+      return {kind:"jackpot", prize:10000, line:L.name, symbol:c.symbol};
     }
   }
 
-  // 2) PAR ADYACENTE SOLO EN LA DERECHA (r3 == r2) y distinto de r1
-  for (const L of lines) {
-    const [a,b,c] = L.arr;      // a=r1, b=r2, c=r3
-    const rightPair = (b===c && a!==b);
-    if (rightPair) {
+  // 2) TRIPLE (no BET300)
+  for (const L of lines){
+    const c = classify(L.r);
+    if (c.hit === "triple"){
+      return {kind:"triple", prize:5000, line:L.name, symbol:c.symbol};
+    }
+  }
+
+  // 3) PAR válido sólo si r3 == r2 (derecha con medio)
+  for (const L of lines){
+    const c = classify(L.r);
+    if (c.hit === "pair"){
       return {kind:"pair", prize:2000, line:L.name};
     }
   }
 
-  // 3) Sin acierto
+  // 4) Sin acierto
   return {kind:"none", prize:1000, line:null};
 }
 
