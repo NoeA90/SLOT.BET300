@@ -66,7 +66,7 @@ canvas.reelCanvas{width:100%;height:150px;display:block;border-radius:10px;backg
 /* Luces casino alrededor del marco */
 .bulbs{position:absolute;inset:-6px;pointer-events:none}
 .bulbs i{position:absolute;width:8px;height:8px;border-radius:50%;box-shadow:0 0 10px rgba(255,255,255,.6)}
-@keyframes bulbOn{0%{opacity:.4;transform:scale(.9)}50%{opacity:1;transform:scale(1)}100%{opacity:.4;transform:scale(.9)}}
+@keyframes bulbOn{0%{opacity:.4;transform:scale(.9)}50%{opacity:1;transform:scale(1)}100%{opacity:.4;transform:scale(.9)}
 
 /* FX para resaltar línea */
 .fx{position:absolute;inset:8px;pointer-events:none}
@@ -157,12 +157,10 @@ canvas.reelCanvas{width:100%;height:150px;display:block;border-radius:10px;backg
 
         <div class="stage">
           <div class="slotWrap slot" id="slotBox">
-            <!-- Luces casino -->
             <div class="bulbs" id="bulbs"></div>
 
             <div class="shadowTop"></div>
             <div class="reelFrame" id="reelFrame">
-              <!-- FX highlight -->
               <div class="fx"><canvas id="fx"></canvas></div>
 
               <div class="reels">
@@ -200,7 +198,6 @@ canvas.reelCanvas{width:100%;height:150px;display:block;border-radius:10px;backg
   </div>
 </div>
 
-<!-- Dock -->
 <div class="dock">
   <button id="spinBtn" class="btn">🎯 Girar</button>
   <button id="claimBtn" class="btn ok" disabled>📲 Reclamar</button>
@@ -266,7 +263,7 @@ const AudioKit = (()=>{
 soundToggle.addEventListener('click',()=>{ soundOn=!soundOn; soundState.textContent=soundOn?'ON':'OFF';});
 
 /* ===== Reels (canvas) ===== */
-const SYMBOLS = ["💎","7","🍒","🔔","⭐","BET300"]; // BET300 → sello
+const SYMBOLS = ["💎","7","🍒","🔔","⭐","BET300"];
 const COLS = [document.getElementById('r1'),document.getElementById('r2'),document.getElementById('r3')];
 const CTX = COLS.map(c=>c.getContext('2d'));
 let reelY = [0,0,0], spinning=false;
@@ -335,7 +332,7 @@ function renderWinFX(){
   fxCtx.restore();
 }
 
-/* Dibujo / helpers */
+/* Helpers y dibujo de símbolos */
 function clampMod(n,m){ return ((n % m) + m) % m; }
 
 function drawSealBET300(ctx, x, y, cell){
@@ -402,7 +399,15 @@ function drawReel(ctx, y){
   }
 }
 
-/* ===== Luces casino ===== */
+function renderAll(){
+  for(let i=0;i<3;i++) drawReel(CTX[i], reelY[i]);
+  if(haloActive && Date.now()>haloUntil){ haloActive=false; }
+  renderWinFX();
+  requestAnimationFrame(renderAll);
+}
+renderAll();
+
+/* Luces */
 function placeBulbs(){
   const wrap = document.getElementById('slotBox');
   const frame = document.getElementById('reelFrame');
@@ -423,7 +428,7 @@ function placeBulbs(){
   for(let i=0;i<=perSide;i++){ addBulb(w+4, i*(h/perSide), i+300); }
 }
 
-/* ===== UI ===== */
+/* UI refs */
 const spinBtn = document.getElementById('spinBtn');
 const claimBtn= document.getElementById('claimBtn');
 const badge   = document.getElementById('badge');
@@ -514,7 +519,7 @@ function tickCountdown(){
   document.getElementById('countdown').textContent=h>0?`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
 
-/* ===== Probabilidades de símbolos en el centro de cada reel (para la animación) */
+/* ===== Probabilidades del símbolo central (animación) ===== */
 function pickCenters(){
   const s = ()=> SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
   const r = Math.random();
@@ -532,16 +537,17 @@ function pickCenters(){
 /* Visibles (arriba/centro/abajo) según reelY */
 function visibleFor(colIndex){
   const y = reelY[colIndex];
-  const base = Math.floor(y); // centro
+  const base = Math.floor(y);
   const top    = SYMBOLS[clampMod(base - 1, SYMBOLS.length)];
   const center = SYMBOLS[clampMod(base,     SYMBOLS.length)];
   const bottom = SYMBOLS[clampMod(base + 1, SYMBOLS.length)];
   return { top, center, bottom };
 }
 
-/* Evaluación de líneas (rectas y diagonales). 
-   Premio sólo si las coincidencias son reales en una línea.
-   Pares: únicamente si son ADYACENTES (1–2 o 2–3). */
+/* ===== Evaluación SOLO derecha→izquierda =====
+   Triples: 3 iguales (incluye BET300 como jackpot)
+   Pares:   únicamente si están en los dos rodillos de la derecha (r3==r2) y r1 distinto
+*/
 function evaluateLines(grid){
   const lines = [
     {name:"Arriba", arr:[grid.r1.top,    grid.r2.top,    grid.r3.top]},
@@ -551,21 +557,19 @@ function evaluateLines(grid){
     {name:"Diag ↗", arr:[grid.r1.bottom, grid.r2.center, grid.r3.top]},
   ];
 
-  // Triple (prioridad)
+  // Triples (prioridad máxima)
   for (const L of lines) {
-    const [a,b,c] = L.arr;
+    const [a,b,c] = L.arr; // a=r1, b=r2, c=r3
     if (a===b && b===c) {
       if (a==="BET300") return {kind:"jackpot", prize:10000, line:L.name, symbol:a};
       return {kind:"triple", prize:5000, line:L.name, symbol:a};
     }
   }
 
-  // Par adyacente (1–2 o 2–3) con el tercero distinto
+  // Par sólo en la derecha (b==c) y a distinto
   for (const L of lines) {
     const [a,b,c] = L.arr;
-    const leftPair  = (a===b && b!==c);
-    const rightPair = (b===c && a!==b);
-    if (leftPair || rightPair) {
+    if (b===c && a!==b) {
       return {kind:"pair", prize:2000, line:L.name};
     }
   }
@@ -573,18 +577,8 @@ function evaluateLines(grid){
   return {kind:"none", prize:1000, line:null};
 }
 
-/* ===== Animación ===== */
+/* ===== Spin ===== */
 document.addEventListener('click',()=>AudioKit.unlock(),{once:true});
-
-function startRenderLoop(){
-  function renderAll(){
-    for(let i=0;i<3;i++) drawReel(CTX[i], reelY[i]);
-    if(haloActive && Date.now()>haloUntil){ haloActive=false; }
-    renderWinFX();
-    requestAnimationFrame(renderAll);
-  }
-  requestAnimationFrame(renderAll);
-}
 
 spinBtn.addEventListener('click', ()=>{
   if(spinning) return;
@@ -678,7 +672,6 @@ function init(){
   restoreDaily(); restorePrizeIfAny(); tickCountdown();
   setInterval(tickCountdown,1000); scheduleMidnightReset();
   reelY=[0,0,0];
-  startRenderLoop(); // <— arranca el loop de dibujo cuando todo ya está dimensionado
 }
 init();
 </script>
