@@ -101,6 +101,12 @@ canvas.reelCanvas{width:100%;height:150px;display:block;border-radius:10px;backg
 .closeX{margin-left:auto;cursor:pointer;opacity:.8}
 .closeX:hover{opacity:1}
 
+/* Historial */
+.history{margin-top:8px}
+.history h3{font-size:14px;color:var(--muted);margin-bottom:4px}
+.history ul{list-style:none;padding:0;margin:0;display:grid;gap:4px}
+.history li{font-size:12px;color:var(--muted);border:1px dashed var(--border);border-radius:10px;padding:6px 8px}
+
 /* Compacto móvil */
 @media(max-width:420px){
   h1{font-size:18px}
@@ -148,17 +154,13 @@ canvas.reelCanvas{width:100%;height:150px;display:block;border-radius:10px;backg
     <div class="grid">
       <div class="panel">
         <h1>Slot Express · </h1>
-    
         <div class="stage">
           <div class="slotWrap slot" id="slotBox">
-            <!-- Luces casino -->
             <div class="bulbs" id="bulbs"></div>
-
             <div class="shadowTop"></div>
             <div class="reelFrame" id="reelFrame">
               <!-- FX highlight -->
               <div class="fx"><canvas id="fx"></canvas></div>
-
               <div class="reels">
                 <div class="reel"><canvas id="r1" class="reelCanvas" width="240" height="540"></canvas></div>
                 <div class="reel"><canvas id="r2" class="reelCanvas" width="240" height="540"></canvas></div>
@@ -189,6 +191,11 @@ canvas.reelCanvas{width:100%;height:150px;display:block;border-radius:10px;backg
           <p style="margin-bottom:6px"><b>Resultado actual</b></p>
           <p id="resultLine" class="muted">—</p>
         </div>
+
+        <div class="panel history">
+          <h3>🕓 Últimos giros</h3>
+          <ul id="historyList"></ul>
+        </div>
       </div>
     </div>
   </div>
@@ -203,26 +210,21 @@ canvas.reelCanvas{width:100%;height:150px;display:block;border-radius:10px;backg
 <script>
 /* ===== Plataforma + WhatsApp (3 PCs: ?pc=1|2|3) ===== */
 const PLATFORM_LINKS = {
-  pc1: "https://c01.bet300vip.com/",  // ← poné tu URL real
-  pc2: "https://c02.bet300vip.com/",  // ← poné tu URL real
-  pc3: "https://c3.bet300vip.com/"   // ← poné tu URL real
+  pc1: "https://c01.bet300vip.com/",
+  pc2: "https://c02.bet300vip.com/",
+  pc3: "https://c3.bet300vip.com/"
 };
-
 const WP_NUMBERS = {
-  pc1: "5491171328828",  // ← número para pc=1
-  pc2: "5491151622581",  // ← número para pc=2
-  pc3: "5491154040255"   // ← número para pc=3
+  pc1: "5491171328828",
+  pc2: "5491151622581",
+  pc3: "5491154040255"
 };
-
 const params = new URLSearchParams(location.search);
-const pcParam = (params.get("pc") || "1").trim();
-const pcKey = "pc" + (pcParam.match(/^[1-3]$/) ? pcParam : "1");
-
-// link del botón "Entrar a la plataforma"
-document.getElementById("playNow").href = PLATFORM_LINKS[pcKey];
-
-// número de WhatsApp a usar en Reclamar
+const pcParam = (params.get('pc')||"1").trim();
+const pcKey   = "pc"+(pcParam.match(/^[1-3]$/)?pcParam:"1");
+document.getElementById('playNow').href = PLATFORM_LINKS[pcKey];
 const WP = WP_NUMBERS[pcKey];
+const pc = pcParam;
 
 /* ===== Antifraude ===== */
 const SALT = "bet300-slot-v7";
@@ -257,13 +259,17 @@ const AudioKit = (()=>{
   const Ctx = window.AudioContext || window.webkitAudioContext;
   const ctx = new Ctx(); let unlocked=false;
   function unlock(){ if(!unlocked){ ctx.resume().catch(()=>{}); unlocked=true; } }
-  function click(freq=900,dur=0.035,vol=0.06){
-    const o=ctx.createOscillator(), g=ctx.createGain(); o.type='square'; o.frequency.value=freq; g.gain.value=0; o.connect(g).connect(ctx.destination);
-    const t=ctx.currentTime; g.gain.linearRampToValueAtTime(vol, t+0.005); g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
-    o.start(t); o.stop(t+dur);
+  function blip(freq=900,dur=0.035,vol=0.06,type='square'){
+    const o=ctx.createOscillator(), g=ctx.createGain(); o.type=type; o.frequency.value=freq; g.gain.value=0; o.connect(g).connect(ctx.destination);
+    const t=ctx.currentTime; g.gain.linearRampToValueAtTime(vol, t+0.005); g.gain.exponentialRampToValueAtTime(0.0001, t+dur); o.start(t); o.stop(t+dur);
   }
-  function spinLoop(){ const id=setInterval(()=>click(820+Math.random()*220,0.028,0.05),80); return ()=>clearInterval(id); }
-  function win(){ [660,880,1320].forEach((f,i)=>setTimeout(()=>click(f,0.12,0.09), i*120)); }
+  function spinLoop(){ const id=setInterval(()=>blip(820+Math.random()*220,0.028,0.05,'square'),80); return ()=>clearInterval(id); }
+  function win(kind){
+    if(kind==='jackpot'){ [660,880,1100,1320,1560].forEach((f,i)=>setTimeout(()=>blip(f,0.12,0.09,'sawtooth'), i*110)); return; }
+    if(kind==='triple'){ [660,880,1100].forEach((f,i)=>setTimeout(()=>blip(f,0.12,0.09,'triangle'), i*120)); return; }
+    if(kind==='pair'){ [660,880].forEach((f,i)=>setTimeout(()=>blip(f,0.10,0.08,'square'), i*120)); return; }
+    blip(420,0.07,0.05,'sine');
+  }
   return {ctx,unlock,spinLoop,win};
 })();
 soundToggle.addEventListener('click',()=>{ soundOn=!soundOn; soundState.textContent=soundOn?'ON':'OFF';});
@@ -277,10 +283,13 @@ let reelY = [0,0,0], spinning=false;
 /* Halo para triple BET300 */
 let haloActive=false, haloUntil=0;
 
-/* FX línea ganadora */
+/* FX línea ganadora (pueden ser varias) */
 const fxCanvas = document.getElementById('fx');
 const reelFrameEl = document.getElementById('reelFrame');
 let fxCtx, fxW=0, fxH=0, winFX=null;
+
+/* Animación de símbolos ganadores */
+let winAnim = { cells:{0:new Set(),1:new Set(),2:new Set()}, until:0 };
 
 function sizeFx(){
   const dpr = window.devicePixelRatio||1;
@@ -294,7 +303,7 @@ function sizeFx(){
 }
 window.addEventListener('resize', ()=>{ clearTimeout(window.__fxTo); window.__fxTo=setTimeout(()=>{ sizeFx(); placeBulbs(); }, 120); });
 
-function flashWin(lineName){ winFX = { line: lineName, until: Date.now()+1100 }; }
+function flashWin(lines){ winFX = { lines, until: Date.now()+1100 }; }
 function renderWinFX(){
   if(!fxCtx){ return; }
   fxCtx.clearRect(0,0,fxW,fxH);
@@ -302,7 +311,6 @@ function renderWinFX(){
 
   const dpr = window.devicePixelRatio||1;
   const c1 = COLS[0].getBoundingClientRect();
-  const c2 = COLS[1].getBoundingClientRect();
   const c3 = COLS[2].getBoundingClientRect();
   const fr = reelFrameEl.getBoundingClientRect();
   const X = x => (x - fr.left)*dpr, Y = y => (y - fr.top)*dpr;
@@ -328,13 +336,16 @@ function renderWinFX(){
   }
   function diag(x0,y0,x1,y1){ fxCtx.beginPath(); fxCtx.moveTo(X(x0)+8*dpr,Y(y0)); fxCtx.lineTo(X(x1)-8*dpr,Y(y1)); fxCtx.stroke(); }
 
-  switch(winFX.line){
-    case "Arriba": band(topY); break;
-    case "Centro": band(centerY); break;
-    case "Abajo":  band(bottomY); break;
-    case "Diag ↘": diag(leftX,topY,rightX,bottomY); break;
-    case "Diag ↗": diag(leftX,bottomY,rightX,topY); break;
-  }
+  (winFX.lines||[]).forEach(line=>{
+    switch(line){
+      case "Arriba": band(topY); break;
+      case "Centro": band(centerY); break;
+      case "Abajo":  band(bottomY); break;
+      case "Diag ↘": diag(leftX,topY,rightX,bottomY); break;
+      case "Diag ↗": diag(leftX,bottomY,rightX,topY); break;
+    }
+  });
+
   fxCtx.restore();
 }
 
@@ -360,17 +371,19 @@ function drawSealBET300(ctx, x, y, cell){
   ctx.restore();
 }
 
-function drawSymbol(ctx, text, x, y, cell){
+function drawSymbol(ctx, text, x, y, cell, scale=1){
+  ctx.save(); ctx.translate(x,y); ctx.scale(scale,scale); ctx.translate(-x,-y);
   if(text==="BET300"){ drawSealBET300(ctx, x, y, cell); }
   else{
-    ctx.save(); ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.textAlign="center"; ctx.textBaseline="middle";
     ctx.fillStyle="#e9ecff";
     ctx.font = `${Math.floor(cell*0.5)}px system-ui,Apple Color Emoji,Segoe UI Emoji`;
-    ctx.fillText(text, x, y); ctx.restore();
+    ctx.fillText(text, x, y);
   }
+  ctx.restore();
 }
 
-function drawReel(ctx, y){
+function drawReel(ctx, y, reelIndex){
   const w=ctx.canvas.width, h=ctx.canvas.height;
   ctx.clearRect(0,0,w,h);
   const cell = h/3;
@@ -388,11 +401,19 @@ function drawReel(ctx, y){
     ctx.strokeRect(pad, top+8, w-pad*2, cell-16);
   }
 
+  const now = Date.now();
+  const pulse = (winAnim && now<winAnim.until) ? (0.5+0.5*Math.sin((now/80))) : 0;
   for(let i=-1;i<=3;i++){
     const idx = clampMod(Math.floor(y)+i, SYMBOLS.length);
     const sym = SYMBOLS[idx];
     const yy = (i*cell - yoff) + h/2;
-    drawSymbol(ctx, sym, w/2, yy, cell);
+
+    let row = (i===-1)?-1 : (i===0)?0 : (i===1)?1 : (i===2)?2 : -1;
+    let scale = 1;
+    if(row>=0 && winAnim && winAnim.cells[reelIndex] && winAnim.cells[reelIndex].has(row)){
+      scale = 1 + 0.12*pulse;
+    }
+    drawSymbol(ctx, sym, w/2, yy, cell, scale);
   }
 
   if(haloActive){
@@ -435,6 +456,7 @@ const subtitle= document.getElementById('subtitle');
 const resultLine = document.getElementById('resultLine');
 const stampEl = document.getElementById('stampLine');
 const hintEl = document.getElementById('hint');
+const historyList = document.getElementById('historyList');
 
 /* Modal */
 const prizeModal = document.getElementById('prizeModal');
@@ -542,13 +564,21 @@ function visibleFor(colIndex){
   return { top, center, bottom };
 }
 
-/* Evaluación de líneas: rectas (arriba/centro/abajo) y diagonales (↘, ↗)
-   Reglas:
-   - JACKPOT: 3 BET300 en la línea
-   - TRIPLE : 3 iguales (no BET300) en la línea
-   - PAR    : dos iguales ADYACENTES (r3==r2 o r2==r1) y el tercero distinto
-*/
-function evaluateLines(grid){
+/* Mapeos auxiliares */
+function rowIndexForLine(lineName){
+  if(lineName==="Arriba") return 0;
+  if(lineName==="Centro") return 1;
+  if(lineName==="Abajo")  return 2;
+  return null; // diagonales
+}
+function diagRows(lineName){
+  if(lineName==="Diag ↘") return [0,1,2];
+  if(lineName==="Diag ↗") return [2,1,0];
+  return null;
+}
+
+/* Evaluación acumulada con anclaje en 1ª columna */
+function evaluateAllWins(grid){
   const lines = [
     {name:"Arriba", r:[grid.r1.top,    grid.r2.top,    grid.r3.top]},
     {name:"Centro", r:[grid.r1.center, grid.r2.center, grid.r3.center]},
@@ -557,37 +587,57 @@ function evaluateLines(grid){
     {name:"Diag ↗", r:[grid.r1.bottom, grid.r2.center, grid.r3.top]},
   ];
 
-  // 1) JACKPOT / TRIPLE (prioridad máxima)
-  for (const L of lines){
-    const [r1, r2, r3] = L.r;
-    if (r1 === r2 && r2 === r3){
-      if (r1 === "BET300") return {kind:"jackpot", prize:10000, line:L.name, symbol:r1};
-      return {kind:"triple", prize:5000, line:L.name, symbol:r1};
+  const details=[];
+  let total=0;
+
+  for(const L of lines){
+    const [a,b,c] = L.r;
+    if (a!==b) continue; // debe iniciar en la 1ª (izq)
+
+    if (a===b && b===c){
+      const kind = (a==="BET300") ? "jackpot" : "triple";
+      const prize = (kind==="jackpot") ? 10000 : 5000;
+      total += prize;
+      details.push({line:L.name, kind, prize, symbols:[a,b,c]});
+      continue;
+    }
+
+    if (a===b && c!==b){
+      const prize=2000;
+      total += prize;
+      details.push({line:L.name, kind:"pair", prize, symbols:[a,b,c]});
     }
   }
 
-  // 2) PAR ADYACENTE en cualquiera de los lados (r3==r2 ó r2==r1) y el tercero distinto
-  for (const L of lines){
-    const [r1, r2, r3] = L.r;
-    const rightPair = (r3 === r2 && r1 !== r2); // derecha→centro
-    const leftPair  = (r2 === r1 && r3 !== r2); // centro→izquierda
-    if (rightPair || leftPair){
-      return {kind:"pair", prize:2000, line:L.name};
-    }
+  if(details.length===0){
+    return { total:1000, details:[], kind:"none" };
   }
 
-  // 3) Sin acierto
-  return {kind:"none", prize:1000, line:null};
+  const hasJackpot = details.some(d=>d.kind==="jackpot");
+  const hasTriple  = details.some(d=>d.kind==="triple");
+  const mainKind = hasJackpot ? "jackpot" : hasTriple ? "triple" : "pair";
+
+  return { total, details, kind: mainKind };
 }
 
-
+/* Historial (últimos 5) */
+function pushHistory(entry){
+  const arr = JSON.parse(localStorage.getItem('slot_hist')||"[]");
+  arr.unshift(entry);
+  while(arr.length>5) arr.pop();
+  localStorage.setItem('slot_hist', JSON.stringify(arr));
+}
+function renderHistory(){
+  const arr = JSON.parse(localStorage.getItem('slot_hist')||"[]");
+  historyList.innerHTML = arr.map(e=>`<li>${e.ts} · ${money(e.prize)} · ${e.text}</li>`).join('') || '<li>Sin registros</li>';
+}
 
 /* ===== Animación ===== */
 document.addEventListener('click',()=>AudioKit.unlock(),{once:true});
 
 function startRenderLoop(){
   function renderAll(){
-    for(let i=0;i<3;i++) drawReel(CTX[i], reelY[i]);
+    for(let i=0;i<3;i++) drawReel(CTX[i], reelY[i], i);
     if(haloActive && Date.now()>haloUntil){ haloActive=false; }
     renderWinFX();
     requestAnimationFrame(renderAll);
@@ -633,11 +683,11 @@ async function onStop(){
   const vis3 = visibleFor(2);
   const grid = { r1: vis1, r2: vis2, r3: vis3 };
 
-  const verdict = evaluateLines(grid);
+  const verdict = evaluateAllWins(grid);
 
-  if(verdict.kind==="jackpot"){ haloActive = true; haloUntil = Date.now()+1200; }
+  if(verdict.details.some(d=>d.kind==="jackpot")){ haloActive = true; haloUntil = Date.now()+1200; }
 
-  const prizeValue = verdict.prize;
+  const prizeValue = verdict.total;
   const prizeLabel = money(prizeValue);
   const code = await makeClaimCode(prizeLabel);
   const ts   = tsString(new Date());
@@ -648,13 +698,19 @@ async function onStop(){
   localStorage.setItem('slot_done','1');
 
   badge.textContent = prizeLabel;
+
   title.textContent =
     (verdict.kind==="jackpot") ? "🏆 ¡JACKPOT $10.000!" :
     (verdict.kind==="triple")  ? "🎉 ¡3 iguales!" :
     (verdict.kind==="pair")    ? "✨ ¡2 iguales!" :
                                  "🎁 Premio garantizado";
 
-  subtitle.innerHTML= `Recibís <b>${prizeLabel} extra</b> con tu próxima carga.`;
+  subtitle.innerHTML =
+    (verdict.kind==="jackpot") ? `🎉 ¡Te llevás el premio mayor! Recibís <b>${prizeLabel} extra</b> con tu próxima carga.` :
+    (verdict.kind==="triple")  ? `🔥 Tres iguales. Recibís <b>${prizeLabel} extra</b> con tu próxima carga.` :
+    (verdict.kind==="pair")    ? `✨ Dos iguales desde la primera columna. Recibís <b>${prizeLabel} extra</b> con tu próxima carga.` :
+                                 `Gracias por jugar. Recibís <b>${prizeLabel} extra</b> con tu próxima carga.`;
+
   stampEl.textContent = `Código: ${code} · ${ts}`;
 
   const msg = whatsappText(prizeLabel);
@@ -662,17 +718,34 @@ async function onStop(){
   claimBtn.onclick=()=>location.href=`https://wa.me/${WP}?text=${encodeURIComponent(msg)}`;
 
   const centersNow = [grid.r1.center, grid.r2.center, grid.r3.center];
-  const lineTxt = verdict.line ? ` · Línea: ${verdict.line}` : '';
-  const centersTxt = `Centro: ${centersNow.join(" | ")}`;
-  resultLine.textContent =
-    (verdict.kind==="jackpot") ? `3 logos BET300${lineTxt}. ${centersTxt}` :
-    (verdict.kind==="triple")  ? `3 iguales${lineTxt}. ${centersTxt}` :
-    (verdict.kind==="pair")    ? `2 iguales${lineTxt}. ${centersTxt}` :
-                                 `Sin acierto. ${centersTxt}`;
+  const linesTxt = (verdict.details.length>0)
+    ? verdict.details.map(d=>`${d.kind==="jackpot"?"JACKPOT":d.kind==="triple"?"3 iguales":"2 iguales"} · Línea: ${d.line}`).join(" • ")
+    : "Sin acierto";
+  const symTxt = `Símbolos: ${centersNow.join(" | ")}`;
+  resultLine.textContent = `${linesTxt} • ${symTxt}`;
 
-  if(verdict.line) flashWin(verdict.line);
-  if(soundOn) AudioKit.win();
+  const winningLines = verdict.details.map(d=>d.line);
+  if(winningLines.length>0) flashWin(winningLines);
+
+  winAnim = { cells:{0:new Set(),1:new Set(),2:new Set()}, until: Date.now()+1200 };
+  verdict.details.forEach(d=>{
+    const diag = diagRows(d.line);
+    if(diag){
+      const cols = (d.kind==="pair") ? [0,1] : [0,1,2];
+      cols.forEach(ci=> winAnim.cells[ci].add(diag[ci]));
+    }else{
+      const row = rowIndexForLine(d.line);
+      const cols = (d.kind==="pair") ? [0,1] : [0,1,2];
+      cols.forEach(ci=> winAnim.cells[ci].add(row));
+    }
+  });
+
+  if(verdict.kind) { if(soundOn) AudioKit.win(verdict.kind); }
   confettiBurst();
+
+  const histText = (verdict.details.length>0) ? verdict.details.map(d=>`${d.line} (${d.kind})`).join(", ") : "Sin acierto";
+  pushHistory({ts, prize:prizeValue, text:histText});
+  renderHistory();
 
   const delay = haloActive ? Math.max(0, haloUntil - Date.now()) : 0;
   setTimeout(()=> openModal(prizeLabel, code, ts), delay);
@@ -684,10 +757,10 @@ async function onStop(){
 function placeAndSize(){ sizeFx(); placeBulbs(); }
 function init(){
   placeAndSize();
-  restoreDaily(); restorePrizeIfAny(); tickCountdown();
+  restoreDaily(); restorePrizeIfAny(); tickCountdown(); renderHistory();
   setInterval(tickCountdown,1000); scheduleMidnightReset();
   reelY=[0,0,0];
-  startRenderLoop(); // <— arranca el loop de dibujo cuando todo ya está dimensionado
+  startRenderLoop();
 }
 init();
 </script>
