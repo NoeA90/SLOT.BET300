@@ -19,38 +19,74 @@ body::before{content:"";position:fixed;inset:0;z-index:-2;background:
   linear-gradient(180deg,#0a0f1f 0%,#0a0f1f 60%,#080c1a 100%);
 }
 .container{max-width:980px;margin:6px auto 86px;padding:0 10px}
-.card{background:
-  radial-gradient(120% 100% at 50% 0%, rgba(124,77,255,.09), transparent),
-  var(--panel2);
-  border:1px solid var(--border);border-radius:18px;padding:10px;box-shadow:0 15px 40px rgba(0,0,0,.35)}
+.card{
+  background: radial-gradient(120% 100% at 50% 0%, rgba(124,77,255,.09), transparent), var(--panel2);
+  border:1px solid var(--border);border-radius:18px;padding:10px;box-shadow:0 15px 40px rgba(0,0,0,.35)
+}
 @media(min-width:900px){.grid{display:grid;grid-template-columns:1.05fr .95fr;gap:10px}}
 @media(max-width:520px){.card{border-radius:0;border-left:0;border-right:0}}
 
+/* Header */
 .head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
 .brand{font-weight:900;letter-spacing:.5px;font-size:22px}
-.pill{background:linear-gradient(90deg,rgba(124,77,255,.13),rgba(0,209,255,.13));border:1px solid var(--border);
-  border-radius:999px;padding:6px 8px;font-size:12px;color:var(--muted)}
+.pill{
+  background:linear-gradient(90deg,rgba(124,77,255,.13),rgba(0,209,255,.13));
+  border:1px solid var(--border); border-radius:999px; padding:6px 8px; font-size:12px; color:var(--muted)
+}
 .pill.time{display:flex;gap:6px;align-items:center}
 .pill.sound{cursor:pointer;user-select:none}
+.pill:hover{filter:brightness(1.08)}
 .count{display:inline-flex;gap:6px;align-items:center;padding:3px 8px;border-radius:999px;background:rgba(255,204,0,.15);
   border:1px solid rgba(255,204,0,.35);color:#ffe27a;font-weight:700;font-variant-numeric:tabular-nums}
+.rightTop{margin-left:auto;display:flex;gap:8px;align-items:center}
+.btnLink{
+  display:inline-flex;gap:8px;align-items:center;padding:8px 10px;border-radius:12px;font-weight:800;
+  background:linear-gradient(90deg,#7c59ff,#00d1ff);color:#0a0f1f;text-decoration:none;border:1px solid rgba(255,255,255,.06);
+  transition:transform .08s ease, box-shadow .08s ease
+}
+.btnLink:focus-visible{outline:2px solid #7c59ff; outline-offset:2px; border-radius:14px}
+.btnLink:hover{transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.35)}
+
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:10px}
+.center{text-align:center}
 h1,h2,h3,p{margin:0 0 6px}
 h1{font-size:20px}
 .muted{color:var(--muted)}
-.rightTop{margin-left:auto;display:flex;gap:8px;align-items:center}
-.btnLink{display:inline-flex;gap:8px;align-items:center;padding:8px 10px;border-radius:12px;font-weight:800;
-  background:linear-gradient(90deg,#7c59ff,#00d1ff);color:#0a0f1f;text-decoration:none;border:1px solid rgba(255,255,255,.06)}
-.panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:10px}
-.center{text-align:center}
+
+/* Logo sobre el slot */
+.logoWrap{
+  display:grid;place-items:center;margin:6px 0 8px
+}
+.logoBadge{
+  display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:14px;
+  background:linear-gradient(180deg,rgba(124,77,255,.18),rgba(34,211,238,.14));
+  border:1px solid var(--border); box-shadow:0 8px 22px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.04)
+}
+.logoBadge img{height:44px; width:auto; display:block; border-radius:10px}
+.logoBadge .txt{font-weight:900;letter-spacing:.6px}
+.logoBadge .shine{
+  position:relative; overflow:hidden; border-radius:12px
+}
+.logoBadge::after{
+  content:""; position:absolute; inset:auto 0 0 0; height:1px; background:linear-gradient(90deg,transparent,#fff3,transparent);
+  filter:blur(.5px)
+}
+@media(max-width:480px){ .logoBadge img{height:38px} }
+
+/* Estadísticas */
 .stat{display:flex;gap:10px;align-items:center;justify-content:center;margin:6px 0 8px}
 .badge{min-width:66px;height:40px;border-radius:10px;background:radial-gradient(100% 100% at 50% 0%, rgba(0,209,255,.35), rgba(124,77,255,.35));
   display:grid;place-items:center;font-weight:800;font-size:16px;box-shadow:inset 0 0 10px rgba(124,77,255,.35)}
 .smallline{font-size:12px;color:var(--muted)}
+
+/* Slot */
 .stage{display:flex;justify-content:center}
 .slotWrap{width:100%;max-width:520px;margin:4px auto 0;position:relative}
-.slot{position:relative;border-radius:16px;padding:10px;background:
-  linear-gradient(180deg,rgba(124,77,255,.18),rgba(34,211,238,.18));
-  border:1px solid var(--border);box-shadow:inset 0 0 0 1px rgba(255,255,255,.03), 0 10px 30px rgba(0,0,0,.35)}
+.slot{
+  position:relative;border-radius:16px;padding:10px;
+  background:linear-gradient(180deg,rgba(124,77,255,.18),rgba(34,211,238,.18));
+  border:1px solid var(--border);box-shadow:inset 0 0 0 1px rgba(255,255,255,.03), 0 10px 30px rgba(0,0,0,.35)
+}
 .reelFrame{position:relative;border-radius:14px;padding:8px;background:rgba(10,15,35,.65);
   border:1px solid #2a2f58}
 .reels{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
@@ -63,20 +99,28 @@ canvas.reelCanvas{width:100%;height:150px;display:block;border-radius:10px;backg
 .shadowBot{bottom:0;background:linear-gradient(0deg,rgba(10,15,35,.75),transparent)}
 .hint{text-align:center;color:var(--muted);font-size:12px;margin-top:4px}
 
-/* Luces casino alrededor del marco */
+/* Luces casino */
 .bulbs{position:absolute;inset:-6px;pointer-events:none}
 .bulbs i{position:absolute;width:8px;height:8px;border-radius:50%;box-shadow:0 0 10px rgba(255,255,255,.6)}
 @keyframes bulbOn{0%{opacity:.4;transform:scale(.9)}50%{opacity:1;transform:scale(1)}100%{opacity:.4;transform:scale(.9)}}
 
-/* FX para resaltar línea */
+/* FX línea ganadora */
 .fx{position:absolute;inset:8px;pointer-events:none}
 .fx canvas{position:absolute;inset:0;display:block}
 
 /* Dock inferior */
-.dock{position:fixed;left:0;right:0;bottom:0;z-index:20;background:linear-gradient(180deg, rgba(11,15,30,0) 0%, rgba(11,15,30,.85) 22%, rgba(11,15,30,.95) 100%);
-  padding:8px 10px 10px;display:flex;gap:8px}
-.btn{appearance:none;border:none;cursor:pointer;padding:12px 14px;border-radius:14px;font-weight:800;background:linear-gradient(90deg,#ff9a3d,#ff5c39);color:#0b0f1e;width:100%;
-  box-shadow:0 8px 20px rgba(0,0,0,.35)}
+.dock{
+  position:fixed;left:0;right:0;bottom:0;z-index:20;
+  background:linear-gradient(180deg, rgba(11,15,30,0) 0%, rgba(11,15,30,.85) 22%, rgba(11,15,30,.95) 100%);
+  padding:8px 10px 10px;display:flex;gap:8px
+}
+.btn{
+  appearance:none;border:none;cursor:pointer;padding:12px 14px;border-radius:14px;font-weight:800;
+  background:linear-gradient(90deg,#ff9a3d,#ff5c39);color:#0b0f1e;width:100%;
+  box-shadow:0 8px 20px rgba(0,0,0,.35); transition:transform .06s ease, box-shadow .06s ease
+}
+.btn:hover{transform:translateY(-1px); box-shadow:0 10px 22px rgba(0,0,0,.35)}
+.btn:active{transform:translateY(0)}
 .btn:disabled{opacity:.6;cursor:not-allowed}
 .btn.ok{background:#25D366;color:#0b0f1e}
 .badgeWin{display:inline-block;padding:4px 8px;border-radius:10px;background:rgba(255,209,102,.15);color:var(--gold);border:1px solid rgba(255,209,102,.35);font-weight:800}
@@ -125,7 +169,7 @@ canvas.reelCanvas{width:100%;height:150px;display:block;border-radius:10px;backg
   <div class="modalCard">
     <div class="modalHead">
       <h3 id="modalTitle">🎁 Premio obtenido</h3>
-      <span id="closeModal" class="closeX">✖</span>
+      <span id="closeModal" class="closeX" aria-label="Cerrar">✖</span>
     </div>
     <div class="modalBody">
       <div class="row"><span class="k">Premio</span><span class="v" id="mPrize">—</span></div>
@@ -153,7 +197,17 @@ canvas.reelCanvas{width:100%;height:150px;display:block;border-radius:10px;backg
 
     <div class="grid">
       <div class="panel">
-        <h1>Slot Express · </h1>
+        <!-- Logo centrado arriba del slot -->
+        <div class="logoWrap">
+          <div class="logoBadge" aria-label="Bet300">
+            <span class="shine">
+              <img src="https://tu-dominio.com/logo-bet300.png" alt="Bet300 Logo" />
+            </span>
+            <span class="txt">BET300</span>
+          </div>
+        </div>
+
+        <h1 class="center">Slot Express</h1>
         <div class="stage">
           <div class="slotWrap slot" id="slotBox">
             <div class="bulbs" id="bulbs"></div>
@@ -208,23 +262,39 @@ canvas.reelCanvas{width:100%;height:150px;display:block;border-radius:10px;backg
 </div>
 
 <script>
-/* ===== Plataforma + WhatsApp (3 PCs: ?pc=1|2|3) ===== */
+/* ===== Plataforma + WhatsApp (4 PCs: ?pc=1|2|3|4) ===== */
 const PLATFORM_LINKS = {
-  pc1: "https://c01.bet300vip.com/",
-  pc2: "https://c02.bet300vip.com/",
-  pc3: "https://c03.bet300vip.com/"
+  pc1: "https://300vip-c01.vercel.app/",
+  pc2: "https://300vip-c02.vercel.app/",
+  pc3: "https://300vip-c03.vercel.app/",
+  pc4: "https://alvge.bet300vip.com/"
 };
+
 const WP_NUMBERS = {
-  pc1: "5491171561685",
-  pc2: "5491171561022",
-  pc3: "5491154040255"
+  pc1: "1171328828",
+  pc2: "1176113038",
+  pc3: "1154040255",
+  pc4: "1125588800"
 };
+
+// Si el número no trae prefijo, agrega 549 (AR). Acepta ya-formateados (+549..., 549...).
+function normalizeWP(n){
+  const s = String(n).replace(/[^\d+]/g, ""); // limpia espacios/guiones
+  if (s.startsWith("+549") || s.startsWith("549")) return s.replace(/^\+/, "");
+  if (s.startsWith("+54"))  return "549" + s.slice(3);
+  if (s.startsWith("54"))   return "549" + s.slice(2);
+  return "549" + s; // asume AR móvil
+}
+
+// Lee ?pc=1..4 (default 1)
 const params = new URLSearchParams(location.search);
 const pcParam = (params.get('pc')||"1").trim();
-const pcKey   = "pc"+(pcParam.match(/^[1-3]$/)?pcParam:"1");
+const pcMatch = /^[1-4]$/.test(pcParam) ? pcParam : "1";
+const pcKey   = "pc"+pcMatch;
+
 document.getElementById('playNow').href = PLATFORM_LINKS[pcKey];
-const WP = WP_NUMBERS[pcKey];
-const pc = pcParam;
+const WP = normalizeWP(WP_NUMBERS[pcKey]);
+const pc = pcMatch;
 
 /* ===== Antifraude ===== */
 const SALT = "bet300-slot-v7";
